@@ -1,0 +1,14 @@
+.dub
+docs.json
+__dummy.html
+docs/
+warabe.so
+warabe.dylib
+warabe.dll
+warabe.a
+warabe.lib
+warabe-test-*
+*.exe
+*.o
+*.obj
+*.lst
