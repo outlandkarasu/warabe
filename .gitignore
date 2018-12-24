@@ -12,3 +12,5 @@ warabe-test-*
 *.o
 *.obj
 *.lst
+*.swp
+
