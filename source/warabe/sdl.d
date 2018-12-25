@@ -3,7 +3,12 @@ module warabe.sdl;
 import std.exception : enforce;
 import std.string : fromStringz;
 
-import bindbc.sdl : SDL_GetError;
+import bindbc.sdl :
+    loadSDL,
+    SDL_GetError,
+    SDLSupport,
+    sdlSupport,
+    unloadSDL;
 
 import warabe.exception : WarabeException;
 
@@ -42,5 +47,30 @@ T sdlEnforce(T)(T value, lazy const(char)[] msg, string file = __FILE__, size_t 
 T sdlEnforce(T)(T value, string file = __FILE__, size_t line = __LINE__)
 {
     return sdlEnforce(value, sdlGetError, file, line);
+}
+
+/**
+Initialize SDL library.
+
+Returns:
+    loaded version.
+*/
+SDLSupport initializeSDL()
+{
+    immutable loaded = loadSDL();
+    if (loaded != sdlSupport)
+    {
+        sdlEnforce(loaded != SDLSupport.noLibrary, "library not found.");
+        sdlEnforce(loaded != SDLSupport.badLibrary, "bad library.");
+    }
+    return loaded;
+}
+
+/**
+finalize SDL libraries.
+*/
+void finalizeSDL()
+{
+    unloadSDL();
 }
 
