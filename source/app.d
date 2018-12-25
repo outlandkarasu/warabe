@@ -1,6 +1,13 @@
-import std.stdio;
+import warabe.application : run;
 
-void main()
+/**
+entry point.
+
+Params:
+    args = command line arguments.
+*/
+void main(string[] args)
 {
-	writeln("Edit source/app.d to start your project.");
+    run(args);
 }
+
