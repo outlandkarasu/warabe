@@ -9,6 +9,7 @@ import bindbc.sdl :
     SDL_CreateWindow,
     SDL_Delay,
     SDL_DestroyWindow,
+    SDL_Event,
     SDL_GL_CONTEXT_MAJOR_VERSION,
     SDL_GL_CONTEXT_MINOR_VERSION,
     SDL_GL_CONTEXT_PROFILE_MASK,
@@ -19,7 +20,9 @@ import bindbc.sdl :
     SDL_GL_SetAttribute,
     SDL_Init,
     SDL_INIT_EVERYTHING,
+    SDL_PollEvent,
     SDL_Quit,
+    SDL_QUIT,
     SDL_WINDOW_SHOWN,
     SDL_WINDOW_OPENGL,
     SDLSupport,
@@ -134,6 +137,20 @@ void runSDL()
     auto openGlContext = sdlEnforce(SDL_GL_CreateContext(window));
     scope(exit) SDL_GL_DeleteContext(openGlContext);
 
-    SDL_Delay(5000);
+    // main loop
+    for(;;)
+    {
+        for(SDL_Event e; SDL_PollEvent(&e);)
+        {
+            switch(e.type)
+            {
+                case SDL_QUIT:
+                    return;
+                default:
+                    break;
+            }
+        }
+        SDL_Delay(0);
+    }
 }
 
