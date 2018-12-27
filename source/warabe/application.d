@@ -2,14 +2,23 @@ module warabe.application;
 
 import warabe.sdl : runSDL;
 
+///
+struct ApplicationParameters {
+    string windowTitle = "Warabe";
+    uint windowPositionX = 0;
+    uint windowPositionY = 0;
+    uint windowWidth = 800;
+    uint windowHeight = 600;
+}
+
 /**
 running warabe application.
 
 Params:
-    args = command line arguments.
+    params = application parameters.
 */
-void run(string[] args)
+void run(ref const(ApplicationParameters) params)
 {
-    runSDL();
+    runSDL(params);
 }
 
