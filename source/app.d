@@ -1,4 +1,4 @@
-import warabe.application : run;
+import warabe.application : ApplicationParameters, run;
 
 /**
 entry point.
@@ -8,6 +8,7 @@ Params:
 */
 void main(string[] args)
 {
-    run(args);
+    auto params = ApplicationParameters("test");
+    run(params);
 }
 

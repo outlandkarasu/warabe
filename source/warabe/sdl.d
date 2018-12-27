@@ -1,7 +1,7 @@
 module warabe.sdl;
 
 import std.exception : enforce;
-import std.string : fromStringz;
+import std.string : fromStringz, toStringz;
 
 import bindbc.sdl :
     loadSDL,
@@ -29,16 +29,8 @@ import bindbc.sdl :
     sdlSupport,
     unloadSDL;
 
+import warabe.application : ApplicationParameters;
 import warabe.exception : WarabeException;
-
-enum {
-    WINDOW_POS_X = 0,
-    WINDOW_POS_Y = 0,
-    WINDOW_WIDTH = 800,
-    WINDOW_HEIGHT = 600,
-}
-
-enum WINDOW_TITLE = "Warabe";
 
 enum WINDOW_FLAGS = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL;
 
@@ -111,8 +103,11 @@ void finalizeSDL()
 
 /**
 run SDL main loop.
+
+Params:
+    params = application parameters.
 */
-void runSDL()
+void runSDL(ref const(ApplicationParameters) params)
 {
     initializeSDL();
     scope(exit) finalizeSDL();
@@ -126,11 +121,11 @@ void runSDL()
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     auto window = sdlEnforce(SDL_CreateWindow(
-        WINDOW_TITLE,
-        WINDOW_POS_X,
-        WINDOW_POS_Y,
-        WINDOW_WIDTH,
-        WINDOW_HEIGHT,
+        toStringz(params.windowTitle),
+        params.windowPositionX,
+        params.windowPositionY,
+        params.windowWidth,
+        params.windowHeight,
         WINDOW_FLAGS));
     scope(exit) SDL_DestroyWindow(window);
 
