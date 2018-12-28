@@ -1,15 +1,19 @@
 module warabe.sdl;
 
 import std.exception : enforce;
+import std.stdio : writefln;
 import std.string : fromStringz, toStringz;
 
 import bindbc.sdl :
     loadSDL,
+    SDL_AddTimer,
     SDL_GetError,
     SDL_CreateWindow,
     SDL_Delay,
     SDL_DestroyWindow,
     SDL_Event,
+    SDL_GetPerformanceCounter,
+    SDL_GetPerformanceFrequency,
     SDL_GL_CONTEXT_MAJOR_VERSION,
     SDL_GL_CONTEXT_MINOR_VERSION,
     SDL_GL_CONTEXT_PROFILE_MASK,
@@ -21,12 +25,17 @@ import bindbc.sdl :
     SDL_Init,
     SDL_INIT_EVERYTHING,
     SDL_PollEvent,
+    SDL_PushEvent,
     SDL_Quit,
     SDL_QUIT,
+    SDL_RemoveTimer,
+    SDL_UserEvent,
+    SDL_USEREVENT,
     SDL_WINDOW_SHOWN,
     SDL_WINDOW_OPENGL,
     SDLSupport,
     sdlSupport,
+    Uint32,
     unloadSDL;
 
 import warabe.application : ApplicationParameters;
@@ -132,20 +141,42 @@ void runSDL(ref const(ApplicationParameters) params)
     auto openGlContext = sdlEnforce(SDL_GL_CreateContext(window));
     scope(exit) SDL_GL_DeleteContext(openGlContext);
 
-    // main loop
-    for(;;)
+    // FPS counter.
+    extern(C) @nogc nothrow Uint32 onTimer(Uint32 interval, void* param)
     {
+        SDL_Event event;
+        event.type = SDL_USEREVENT;
+        event.user = SDL_UserEvent(SDL_USEREVENT);
+        SDL_PushEvent(&event);
+        return interval;
+    }
+
+    auto timerId = SDL_AddTimer(1000, &onTimer, null);
+    sdlEnforce(timerId != 0);
+    scope(exit) SDL_RemoveTimer(timerId);
+
+    // main loop
+    immutable frequency = SDL_GetPerformanceFrequency();
+    immutable msPerFrame = 1000.0 / params.fps;
+    for(size_t frameCount = 0; ; ++frameCount)
+    {
+        immutable start = SDL_GetPerformanceCounter();
         for(SDL_Event e; SDL_PollEvent(&e);)
         {
             switch(e.type)
             {
                 case SDL_QUIT:
                     return;
+                case SDL_USEREVENT:
+                    writefln("FPS: %s", frameCount);
+                    frameCount = 0;
+                    break;
                 default:
                     break;
             }
         }
-        SDL_Delay(0);
+        immutable elapse = (SDL_GetPerformanceCounter() - start) * 1000.0 / frequency;
+        SDL_Delay((msPerFrame > elapse) ? cast(uint)(msPerFrame - elapse) : 0);
     }
 }
 

@@ -9,6 +9,7 @@ struct ApplicationParameters {
     uint windowPositionY = 0;
     uint windowWidth = 800;
     uint windowHeight = 600;
+    uint fps = 60;
 }
 
 /**
