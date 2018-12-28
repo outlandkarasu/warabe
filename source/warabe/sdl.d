@@ -10,6 +10,8 @@ import bindbc.sdl :
     SDL_Delay,
     SDL_DestroyWindow,
     SDL_Event,
+    SDL_GetPerformanceCounter,
+    SDL_GetPerformanceFrequency,
     SDL_GL_CONTEXT_MAJOR_VERSION,
     SDL_GL_CONTEXT_MINOR_VERSION,
     SDL_GL_CONTEXT_PROFILE_MASK,
@@ -132,9 +134,13 @@ void runSDL(ref const(ApplicationParameters) params)
     auto openGlContext = sdlEnforce(SDL_GL_CreateContext(window));
     scope(exit) SDL_GL_DeleteContext(openGlContext);
 
+    immutable frequency = SDL_GetPerformanceFrequency();
+    immutable msPerFrame = 1000.0 / params.fps;
+
     // main loop
     for(;;)
     {
+        immutable start = SDL_GetPerformanceCounter();
         for(SDL_Event e; SDL_PollEvent(&e);)
         {
             switch(e.type)
@@ -145,7 +151,8 @@ void runSDL(ref const(ApplicationParameters) params)
                     break;
             }
         }
-        SDL_Delay(0);
+        immutable elapse = (SDL_GetPerformanceCounter() - start) * 1000.0 / frequency;
+        SDL_Delay((msPerFrame > elapse) ? cast(uint)(msPerFrame - elapse) : 0);
     }
 }
 
