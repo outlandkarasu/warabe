@@ -1,4 +1,10 @@
 import warabe.application : ApplicationParameters, run;
+import warabe.event : EventHandler, DefaultEventHandler, EventHandlerResult;
+
+class AppEventHandler : EventHandler
+{
+    mixin DefaultEventHandler;
+}
 
 /**
 entry point.
@@ -8,7 +14,8 @@ Params:
 */
 void main(string[] args)
 {
+    scope eventHandler = new AppEventHandler();
     auto params = ApplicationParameters("test");
-    run(params);
+    run(params, eventHandler);
 }
 
