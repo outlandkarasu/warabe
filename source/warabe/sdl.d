@@ -114,12 +114,19 @@ void runSDL(ref const(ApplicationParameters) params, scope EventHandler eventHan
     // main loop
     immutable frequency = SDL_GetPerformanceFrequency();
     immutable msPerFrame = 1000.0 / params.fps;
-    for(size_t frameCount = 0; ; ++frameCount)
+    for (size_t frameCount = 0; ; ++frameCount)
     {
         immutable start = SDL_GetPerformanceCounter();
-        for(SDL_Event e; SDL_PollEvent(&e);)
+        for (SDL_Event e; SDL_PollEvent(&e);)
         {
-            final switch(translateEvent(e, eventHandler, frameCount))
+            // reset fps.
+            immutable fps = frameCount / 1.0f;
+            if (e.type == SDL_USEREVENT)
+            {
+                frameCount = 0;
+            }
+
+            final switch(translateEvent(e, eventHandler, fps))
             {
                 case EventHandlerResult.CONTINUE:
                     break;
@@ -188,21 +195,21 @@ translate SDL events to Warabe application event.
 Params:
     event = SDL event.
     eventHandler = application event handler.
-    frameCount = FPS frame count.
+    fps = frame per second.
 Returns:
     event handler result.
 */
 EventHandlerResult translateEvent(
         ref const(SDL_Event) event,
         scope EventHandler eventHandler,
-        size_t frameCount)
+        float fps)
 {
     switch(event.type)
     {
         case SDL_QUIT:
             return eventHandler.onQuit();
         case SDL_USEREVENT:
-            return eventHandler.onFPSCount(frameCount);
+            return eventHandler.onFPSCount(fps);
         default:
             return EventHandlerResult.CONTINUE;
     }
