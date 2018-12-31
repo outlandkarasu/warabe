@@ -39,6 +39,7 @@ import bindbc.sdl :
     unloadSDL;
 
 import warabe.application : ApplicationParameters;
+import warabe.event : EventHandler, EventHandlerResult;
 import warabe.exception : WarabeException;
 
 enum WINDOW_FLAGS = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL;
@@ -63,6 +64,83 @@ class SDLException : WarabeException
         super(msg, file, line, nextInChain);
     }
 }
+
+/**
+run SDL main loop.
+
+Params:
+    params = application parameters.
+    eventHandler = main loop event handler.
+*/
+void runSDL(ref const(ApplicationParameters) params, scope EventHandler eventHandler)
+{
+    initializeSDL();
+    scope(exit) finalizeSDL();
+
+    sdlEnforce(SDL_Init(SDL_INIT_EVERYTHING) == 0);
+    scope(exit) SDL_Quit();
+
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, OPEN_GL_MAJOR_VERSION);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, OPEN_GL_MINOR_VERSION);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+
+    auto window = sdlEnforce(SDL_CreateWindow(
+        toStringz(params.windowTitle),
+        params.windowPositionX,
+        params.windowPositionY,
+        params.windowWidth,
+        params.windowHeight,
+        WINDOW_FLAGS));
+    scope(exit) SDL_DestroyWindow(window);
+
+    auto openGlContext = sdlEnforce(SDL_GL_CreateContext(window));
+    scope(exit) SDL_GL_DeleteContext(openGlContext);
+
+    // FPS counter.
+    extern(C) @nogc nothrow Uint32 onTimer(Uint32 interval, void* param)
+    {
+        SDL_Event event;
+        event.type = SDL_USEREVENT;
+        event.user = SDL_UserEvent(SDL_USEREVENT);
+        SDL_PushEvent(&event);
+        return interval;
+    }
+
+    auto timerId = SDL_AddTimer(1000, &onTimer, null);
+    sdlEnforce(timerId != 0);
+    scope(exit) SDL_RemoveTimer(timerId);
+
+    // main loop
+    immutable frequency = SDL_GetPerformanceFrequency();
+    immutable msPerFrame = 1000.0 / params.fps;
+    for (size_t frameCount = 0; ; ++frameCount)
+    {
+        immutable start = SDL_GetPerformanceCounter();
+        for (SDL_Event e; SDL_PollEvent(&e);)
+        {
+            // reset fps.
+            immutable fps = frameCount / 1.0f;
+            if (e.type == SDL_USEREVENT)
+            {
+                frameCount = 0;
+            }
+
+            final switch(translateEvent(e, eventHandler, fps))
+            {
+                case EventHandlerResult.CONTINUE:
+                    break;
+                case EventHandlerResult.QUIT:
+                    // exit main loop.
+                    return;
+            }
+        }
+        immutable elapse = (SDL_GetPerformanceCounter() - start) * 1000.0 / frequency;
+        SDL_Delay((msPerFrame > elapse) ? cast(uint)(msPerFrame - elapse) : 0);
+    }
+}
+
+private:
 
 /**
 Returns:
@@ -110,73 +188,30 @@ void finalizeSDL()
     unloadSDL();
 }
 
+
 /**
-run SDL main loop.
+translate SDL events to Warabe application event.
 
 Params:
-    params = application parameters.
+    event = SDL event.
+    eventHandler = application event handler.
+    fps = frame per second.
+Returns:
+    event handler result.
 */
-void runSDL(ref const(ApplicationParameters) params)
+EventHandlerResult translateEvent(
+        ref const(SDL_Event) event,
+        scope EventHandler eventHandler,
+        float fps)
 {
-    initializeSDL();
-    scope(exit) finalizeSDL();
-
-    sdlEnforce(SDL_Init(SDL_INIT_EVERYTHING) == 0);
-    scope(exit) SDL_Quit();
-
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, OPEN_GL_MAJOR_VERSION);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, OPEN_GL_MINOR_VERSION);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-
-    auto window = sdlEnforce(SDL_CreateWindow(
-        toStringz(params.windowTitle),
-        params.windowPositionX,
-        params.windowPositionY,
-        params.windowWidth,
-        params.windowHeight,
-        WINDOW_FLAGS));
-    scope(exit) SDL_DestroyWindow(window);
-
-    auto openGlContext = sdlEnforce(SDL_GL_CreateContext(window));
-    scope(exit) SDL_GL_DeleteContext(openGlContext);
-
-    // FPS counter.
-    extern(C) @nogc nothrow Uint32 onTimer(Uint32 interval, void* param)
+    switch(event.type)
     {
-        SDL_Event event;
-        event.type = SDL_USEREVENT;
-        event.user = SDL_UserEvent(SDL_USEREVENT);
-        SDL_PushEvent(&event);
-        return interval;
-    }
-
-    auto timerId = SDL_AddTimer(1000, &onTimer, null);
-    sdlEnforce(timerId != 0);
-    scope(exit) SDL_RemoveTimer(timerId);
-
-    // main loop
-    immutable frequency = SDL_GetPerformanceFrequency();
-    immutable msPerFrame = 1000.0 / params.fps;
-    for(size_t frameCount = 0; ; ++frameCount)
-    {
-        immutable start = SDL_GetPerformanceCounter();
-        for(SDL_Event e; SDL_PollEvent(&e);)
-        {
-            switch(e.type)
-            {
-                case SDL_QUIT:
-                    return;
-                case SDL_USEREVENT:
-                    writefln("FPS: %s", frameCount);
-                    frameCount = 0;
-                    break;
-                default:
-                    break;
-            }
-        }
-        immutable elapse = (SDL_GetPerformanceCounter() - start) * 1000.0 / frequency;
-        SDL_Delay((msPerFrame > elapse) ? cast(uint)(msPerFrame - elapse) : 0);
+        case SDL_QUIT:
+            return eventHandler.onQuit();
+        case SDL_USEREVENT:
+            return eventHandler.onFPSCount(fps);
+        default:
+            return EventHandlerResult.CONTINUE;
     }
 }
 
