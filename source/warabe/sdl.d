@@ -103,33 +103,7 @@ void runSDL(ref const(ApplicationParameters) params, scope EventHandler eventHan
     auto timerId = createFPSCountTimer(FPS_COUNT_INTERVAL_MS);
     scope(exit) SDL_RemoveTimer(timerId);
 
-    // main loop
-    immutable frequency = SDL_GetPerformanceFrequency();
-    immutable msPerFrame = 1000.0 / params.fps;
-    for (size_t frameCount = 0; ; ++frameCount)
-    {
-        immutable start = SDL_GetPerformanceCounter();
-        for (SDL_Event e; SDL_PollEvent(&e);)
-        {
-            // reset fps.
-            immutable fps = frameCount / 1.0f;
-            if (e.type == SDL_USEREVENT)
-            {
-                frameCount = 0;
-            }
-
-            final switch(translateEvent(e, eventHandler, fps))
-            {
-                case EventHandlerResult.CONTINUE:
-                    break;
-                case EventHandlerResult.QUIT:
-                    // exit main loop.
-                    return;
-            }
-        }
-        immutable elapse = (SDL_GetPerformanceCounter() - start) * 1000.0 / frequency;
-        SDL_Delay((msPerFrame > elapse) ? cast(uint)(msPerFrame - elapse) : 0);
-    }
+    mainLoop(params, eventHandler);
 }
 
 private:
@@ -196,6 +170,37 @@ SDL_TimerID createFPSCountTimer(Uint32 intervalMillis)
     auto timerId = SDL_AddTimer(intervalMillis, &onFPSCountTimer, null);
     sdlEnforce(timerId != 0);
     return timerId;
+}
+
+/// main loop function.
+void mainLoop(ref const(ApplicationParameters) params, scope EventHandler eventHandler)
+{
+    immutable frequency = SDL_GetPerformanceFrequency();
+    immutable msPerFrame = 1000.0f / params.fps;
+    for (size_t frameCount = 0; ; ++frameCount)
+    {
+        immutable start = SDL_GetPerformanceCounter();
+        for (SDL_Event e; SDL_PollEvent(&e);)
+        {
+            // reset fps.
+            immutable fps = frameCount / 1.0f;
+            if (e.type == SDL_USEREVENT)
+            {
+                frameCount = 0;
+            }
+
+            final switch(translateEvent(e, eventHandler, fps))
+            {
+                case EventHandlerResult.CONTINUE:
+                    break;
+                case EventHandlerResult.QUIT:
+                    // exit main loop.
+                    return;
+            }
+        }
+        immutable elapse = (SDL_GetPerformanceCounter() - start) * 1000.0f / frequency;
+        SDL_Delay((msPerFrame > elapse) ? cast(uint)(msPerFrame - elapse) : 0);
+    }
 }
 
 /**
