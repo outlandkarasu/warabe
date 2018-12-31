@@ -29,6 +29,7 @@ import bindbc.sdl :
     SDL_Quit,
     SDL_QUIT,
     SDL_RemoveTimer,
+    SDL_TimerID,
     SDL_UserEvent,
     SDL_USEREVENT,
     SDL_WINDOW_SHOWN,
@@ -48,6 +49,8 @@ enum {
     OPEN_GL_MAJOR_VERSION = 3,
     OPEN_GL_MINOR_VERSION = 3
 }
+
+enum FPS_COUNT_INTERVAL_MS = 1000;
 
 /**
 SDL related exception.
@@ -97,47 +100,10 @@ void runSDL(ref const(ApplicationParameters) params, scope EventHandler eventHan
     auto openGlContext = sdlEnforce(SDL_GL_CreateContext(window));
     scope(exit) SDL_GL_DeleteContext(openGlContext);
 
-    // FPS counter.
-    extern(C) @nogc nothrow Uint32 onTimer(Uint32 interval, void* param)
-    {
-        SDL_Event event;
-        event.type = SDL_USEREVENT;
-        event.user = SDL_UserEvent(SDL_USEREVENT);
-        SDL_PushEvent(&event);
-        return interval;
-    }
-
-    auto timerId = SDL_AddTimer(1000, &onTimer, null);
-    sdlEnforce(timerId != 0);
+    auto timerId = createFPSCountTimer(FPS_COUNT_INTERVAL_MS);
     scope(exit) SDL_RemoveTimer(timerId);
 
-    // main loop
-    immutable frequency = SDL_GetPerformanceFrequency();
-    immutable msPerFrame = 1000.0 / params.fps;
-    for (size_t frameCount = 0; ; ++frameCount)
-    {
-        immutable start = SDL_GetPerformanceCounter();
-        for (SDL_Event e; SDL_PollEvent(&e);)
-        {
-            // reset fps.
-            immutable fps = frameCount / 1.0f;
-            if (e.type == SDL_USEREVENT)
-            {
-                frameCount = 0;
-            }
-
-            final switch(translateEvent(e, eventHandler, fps))
-            {
-                case EventHandlerResult.CONTINUE:
-                    break;
-                case EventHandlerResult.QUIT:
-                    // exit main loop.
-                    return;
-            }
-        }
-        immutable elapse = (SDL_GetPerformanceCounter() - start) * 1000.0 / frequency;
-        SDL_Delay((msPerFrame > elapse) ? cast(uint)(msPerFrame - elapse) : 0);
-    }
+    mainLoop(params, eventHandler);
 }
 
 private:
@@ -188,6 +154,54 @@ void finalizeSDL()
     unloadSDL();
 }
 
+/// on FPS count event.
+extern(C) @nogc nothrow Uint32 onFPSCountTimer(Uint32 interval, void* param)
+{
+    SDL_Event event;
+    event.type = SDL_USEREVENT;
+    event.user = SDL_UserEvent(SDL_USEREVENT);
+    SDL_PushEvent(&event);
+    return interval;
+}
+
+///
+SDL_TimerID createFPSCountTimer(Uint32 intervalMillis)
+{
+    auto timerId = SDL_AddTimer(intervalMillis, &onFPSCountTimer, null);
+    sdlEnforce(timerId != 0);
+    return timerId;
+}
+
+/// main loop function.
+void mainLoop(ref const(ApplicationParameters) params, scope EventHandler eventHandler)
+{
+    immutable frequency = SDL_GetPerformanceFrequency();
+    immutable msPerFrame = 1000.0f / params.fps;
+    for (size_t frameCount = 0; ; ++frameCount)
+    {
+        immutable start = SDL_GetPerformanceCounter();
+        for (SDL_Event e; SDL_PollEvent(&e);)
+        {
+            // reset fps.
+            immutable fps = frameCount / 1.0f;
+            if (e.type == SDL_USEREVENT)
+            {
+                frameCount = 0;
+            }
+
+            final switch(translateEvent(e, eventHandler, fps))
+            {
+                case EventHandlerResult.CONTINUE:
+                    break;
+                case EventHandlerResult.QUIT:
+                    // exit main loop.
+                    return;
+            }
+        }
+        immutable elapse = (SDL_GetPerformanceCounter() - start) * 1000.0f / frequency;
+        SDL_Delay((msPerFrame > elapse) ? cast(uint)(msPerFrame - elapse) : 0);
+    }
+}
 
 /**
 translate SDL events to Warabe application event.
