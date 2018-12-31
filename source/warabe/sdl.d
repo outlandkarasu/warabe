@@ -100,7 +100,7 @@ void runSDL(ref const(ApplicationParameters) params, scope EventHandler eventHan
     auto openGlContext = sdlEnforce(SDL_GL_CreateContext(window));
     scope(exit) SDL_GL_DeleteContext(openGlContext);
 
-    auto timerId = createFPSTimer(FPS_COUNT_INTERVAL_MS);
+    auto timerId = createFPSCountTimer(FPS_COUNT_INTERVAL_MS);
     scope(exit) SDL_RemoveTimer(timerId);
 
     // main loop
@@ -180,6 +180,23 @@ void finalizeSDL()
     unloadSDL();
 }
 
+/// on FPS count event.
+extern(C) @nogc nothrow Uint32 onFPSCountTimer(Uint32 interval, void* param)
+{
+    SDL_Event event;
+    event.type = SDL_USEREVENT;
+    event.user = SDL_UserEvent(SDL_USEREVENT);
+    SDL_PushEvent(&event);
+    return interval;
+}
+
+///
+SDL_TimerID createFPSCountTimer(Uint32 intervalMillis)
+{
+    auto timerId = SDL_AddTimer(intervalMillis, &onFPSCountTimer, null);
+    sdlEnforce(timerId != 0);
+    return timerId;
+}
 
 /**
 translate SDL events to Warabe application event.
