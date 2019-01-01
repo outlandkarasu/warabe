@@ -39,7 +39,7 @@ import bindbc.sdl :
     Uint32,
     unloadSDL;
 
-import warabe.application : ApplicationParameters;
+import warabe.application : ApplicationParameters, FrameCounter;
 import warabe.event : EventHandler, EventHandlerResult;
 import warabe.exception : WarabeException;
 
@@ -177,16 +177,18 @@ void mainLoop(ref const(ApplicationParameters) params, scope EventHandler eventH
 {
     immutable frequency = SDL_GetPerformanceFrequency();
     immutable msPerFrame = 1000.0f / params.fps;
-    for (size_t frameCount = 0; ; ++frameCount)
+    FrameCounter frameCounter;
+    frameCounter.reset(SDL_GetPerformanceCounter());
+    for (;; frameCounter.increment())
     {
         immutable start = SDL_GetPerformanceCounter();
         for (SDL_Event e; SDL_PollEvent(&e);)
         {
             // reset fps.
-            immutable fps = frameCount / 1.0f;
+            immutable fps = frameCounter.calculateFramesPerClock(start) * frequency;
             if (e.type == SDL_USEREVENT)
             {
-                frameCount = 0;
+                frameCounter.reset(start);
             }
 
             final switch(translateEvent(e, eventHandler, fps))
