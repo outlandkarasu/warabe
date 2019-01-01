@@ -52,6 +52,63 @@ enum {
 
 enum FPS_COUNT_INTERVAL_MS = 1000;
 
+/// FPS counter.
+struct FrameCounter {
+@nogc @safe nothrow:
+
+    /**
+    reset clock and counter.
+
+    Params:
+        clock = current clock.
+    */
+    void reset(ulong clock)
+    {
+        clock_ = clock;
+        count_ = 0;
+    }
+
+    /**
+    increment frame count.
+    */
+    void increment()
+    {
+        ++count_;
+    }
+
+    /**
+    calculate frame count.
+
+    Params:
+        clock = current clock.
+    Returns:
+        frame per clock.
+    */
+    double calculateFramesPerClock(ulong clock) const pure
+    {
+        return (clock == clock_) ? 0.0 : (cast(double) count_) / (clock - clock_);
+    }
+
+    /**
+    calculate frame count and reset.
+
+    Params:
+        clock = current clock.
+    Returns:
+        frame per clock.
+    */
+    double getAndReset(ulong clock)
+    {
+        immutable result = calculateFramesPerClock(clock);
+        reset(clock);
+        return result;
+    }
+
+private:
+    ulong clock_;
+    size_t count_;
+}
+
 /**
 SDL related exception.
 */
@@ -177,16 +234,18 @@ void mainLoop(ref const(ApplicationParameters) params, scope EventHandler eventH
 {
     immutable frequency = SDL_GetPerformanceFrequency();
     immutable msPerFrame = 1000.0f / params.fps;
-    for (size_t frameCount = 0; ; ++frameCount)
+    FrameCounter frameCounter;
+    frameCounter.reset(SDL_GetPerformanceCounter());
+    for (;; frameCounter.increment())
     {
         immutable start = SDL_GetPerformanceCounter();
         for (SDL_Event e; SDL_PollEvent(&e);)
         {
             // reset fps.
-            immutable fps = frameCount / 1.0f;
+            immutable fps = frameCounter.calculateFramesPerClock(start) * frequency;
             if (e.type == SDL_USEREVENT)
             {
-                frameCount = 0;
+                frameCounter.reset(start);
             }
 
             final switch(translateEvent(e, eventHandler, fps))
