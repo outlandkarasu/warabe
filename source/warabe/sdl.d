@@ -39,7 +39,7 @@ import bindbc.sdl :
     Uint32,
     unloadSDL;
 
-import warabe.application : ApplicationParameters;
+import warabe.application : ApplicationParameters, FrameCounter;
 import warabe.event : EventHandler, EventHandlerResult;
 import warabe.exception : WarabeException;
 
@@ -51,63 +51,6 @@ enum {
 }
 
 enum FPS_COUNT_INTERVAL_MS = 1000;
-
-/// FPS counter.
-struct FrameCounter {
-@nogc @safe nothrow:
-
-    /**
-    reset clock and counter.
-
-    Params:
-        clock = current clock.
-    */
-    void reset(ulong clock)
-    {
-        clock_ = clock;
-        count_ = 0;
-    }
-
-    /**
-    increment frame count.
-    */
-    void increment()
-    {
-        ++count_;
-    }
-
-    /**
-    calculate frame count.
-
-    Params:
-        clock = current clock.
-    Returns:
-        frame per clock.
-    */
-    double calculateFramesPerClock(ulong clock) const pure
-    {
-        return (clock == clock_) ? 0.0 : (cast(double) count_) / (clock - clock_);
-    }
-
-    /**
-    calculate frame count and reset.
-
-    Params:
-        clock = current clock.
-    Returns:
-        frame per clock.
-    */
-    double getAndReset(ulong clock)
-    {
-        immutable result = calculateFramesPerClock(clock);
-        reset(clock);
-        return result;
-    }
-
-private:
-    ulong clock_;
-    size_t count_;
-}
 
 /**
 SDL related exception.
