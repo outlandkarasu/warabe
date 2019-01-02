@@ -14,16 +14,20 @@ struct ApplicationParameters
     uint fps = 60;
 }
 
+/// frame renderer type.
+alias Renderer = @nogc nothrow void delegate();
+
 /**
 running warabe application.
 
 Params:
     params = application parameters.
     eventHandler = main loop event handler.
+    renderer = frame renderer.
 */
-void run(ref const(ApplicationParameters) params, scope EventHandler eventHandler)
+void run(ref const(ApplicationParameters) params, scope EventHandler eventHandler, scope Renderer renderer)
 {
-    runSDL(params, eventHandler);
+    runSDL(params, eventHandler, renderer);
 }
 
 /// FPS counter.

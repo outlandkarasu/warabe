@@ -24,6 +24,6 @@ void main(string[] args)
 {
     scope eventHandler = new AppEventHandler();
     auto params = ApplicationParameters("test");
-    run(params, eventHandler);
+    run(params, eventHandler, () {});
 }
 
