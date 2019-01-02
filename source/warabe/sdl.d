@@ -39,7 +39,11 @@ import bindbc.sdl :
     Uint32,
     unloadSDL;
 
-import warabe.application : ApplicationParameters, FrameCounter;
+import warabe.application :
+    ApplicationParameters,
+    FrameCounter,
+    Renderer;
+
 import warabe.event : EventHandler, EventHandlerResult;
 import warabe.exception : WarabeException;
 
@@ -74,8 +78,9 @@ run SDL main loop.
 Params:
     params = application parameters.
     eventHandler = main loop event handler.
+    renderer = frame renderer.
 */
-void runSDL(ref const(ApplicationParameters) params, scope EventHandler eventHandler)
+void runSDL(ref const(ApplicationParameters) params, scope EventHandler eventHandler, Renderer renderer)
 {
     initializeSDL();
     scope(exit) finalizeSDL();
@@ -103,7 +108,7 @@ void runSDL(ref const(ApplicationParameters) params, scope EventHandler eventHan
     auto timerId = createFPSCountTimer(FPS_COUNT_INTERVAL_MS);
     scope(exit) SDL_RemoveTimer(timerId);
 
-    mainLoop(params, eventHandler);
+    mainLoop(params, eventHandler, renderer);
 }
 
 private:
@@ -173,7 +178,10 @@ SDL_TimerID createFPSCountTimer(Uint32 intervalMillis)
 }
 
 /// main loop function.
-void mainLoop(ref const(ApplicationParameters) params, scope EventHandler eventHandler)
+void mainLoop(
+        ref const(ApplicationParameters) params,
+        scope EventHandler eventHandler,
+        scope Renderer renderer)
 {
     immutable frequency = SDL_GetPerformanceFrequency();
     immutable msPerFrame = 1000.0f / params.fps;
@@ -200,6 +208,10 @@ void mainLoop(ref const(ApplicationParameters) params, scope EventHandler eventH
                     return;
             }
         }
+
+        // render a frame.
+        renderer();
+
         immutable elapse = (SDL_GetPerformanceCounter() - start) * 1000.0f / frequency;
         SDL_Delay((msPerFrame > elapse) ? cast(uint)(msPerFrame - elapse) : 0);
     }
