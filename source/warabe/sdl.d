@@ -40,9 +40,9 @@ import bindbc.sdl :
     unloadSDL;
 
 import warabe.application :
+    Application,
     ApplicationParameters,
-    FrameCounter,
-    Renderer;
+    FrameCounter;
 
 import warabe.event : EventHandler, EventHandlerResult;
 import warabe.exception : WarabeException;
@@ -77,10 +77,9 @@ run SDL main loop.
 
 Params:
     params = application parameters.
-    eventHandler = main loop event handler.
-    renderer = frame renderer.
+    application = application instance..
 */
-void runSDL(ref const(ApplicationParameters) params, scope EventHandler eventHandler, Renderer renderer)
+void runSDL(ref const(ApplicationParameters) params, scope Application application)
 {
     initializeSDL();
     scope(exit) finalizeSDL();
@@ -108,7 +107,7 @@ void runSDL(ref const(ApplicationParameters) params, scope EventHandler eventHan
     auto timerId = createFPSCountTimer(FPS_COUNT_INTERVAL_MS);
     scope(exit) SDL_RemoveTimer(timerId);
 
-    mainLoop(params, eventHandler, renderer);
+    mainLoop(params, application);
 }
 
 private:
@@ -180,8 +179,7 @@ SDL_TimerID createFPSCountTimer(Uint32 intervalMillis)
 /// main loop function.
 void mainLoop(
         ref const(ApplicationParameters) params,
-        scope EventHandler eventHandler,
-        scope Renderer renderer)
+        scope Application application)
 {
     immutable frequency = SDL_GetPerformanceFrequency();
     immutable msPerFrame = 1000.0f / params.fps;
@@ -199,7 +197,7 @@ void mainLoop(
                 frameCounter.reset(start);
             }
 
-            final switch(translateEvent(e, eventHandler, fps))
+            final switch(translateEvent(e, application, fps))
             {
                 case EventHandlerResult.CONTINUE:
                     break;
@@ -210,7 +208,7 @@ void mainLoop(
         }
 
         // render a frame.
-        renderer();
+        application.render();
 
         immutable elapse = (SDL_GetPerformanceCounter() - start) * 1000.0f / frequency;
         SDL_Delay((msPerFrame > elapse) ? cast(uint)(msPerFrame - elapse) : 0);

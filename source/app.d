@@ -1,14 +1,24 @@
-import warabe.application : ApplicationParameters, run;
-import warabe.event : EventHandler, DefaultEventHandler, EventHandlerResult;
+import warabe.application :
+    Application,
+    ApplicationParameters,
+    run;
+
+import warabe.event :
+    DefaultEventHandler,
+    EventHandlerResult;
 
 import core.stdc.stdio : printf;
 
-class AppEventHandler : EventHandler
+class App : Application
 {
     @nogc nothrow override EventHandlerResult onFPSCount(float fps)
     {
         printf("FPS: %f\n", cast(double) fps);
         return EventHandlerResult.CONTINUE;
+    }
+
+    @nogc nothrow override void render()
+    {
     }
 
     mixin DefaultEventHandler;
@@ -22,8 +32,8 @@ Params:
 */
 void main(string[] args)
 {
-    scope eventHandler = new AppEventHandler();
+    scope app = new App();
     auto params = ApplicationParameters("test");
-    run(params, eventHandler, () {});
+    run(params, app);
 }
 
