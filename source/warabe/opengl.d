@@ -1,5 +1,13 @@
 module warabe.opengl;
 
+import warabe.exception : WarabeException;
+
+///
+enum OpenGLVersion {
+    major = 3,
+    minor = 3
+}
+
 /**
 OpenGL related exception.
 */
