@@ -45,7 +45,9 @@ import warabe.application :
     FrameCounter;
 
 import warabe.opengl :
-    OpenGLVersion;
+    OpenGLVersion,
+    initializeOpenGL,
+    finalizeOpenGL;
 
 import warabe.event : EventHandler, EventHandlerResult;
 import warabe.exception : WarabeException;
@@ -101,6 +103,9 @@ void runSDL(ref const(ApplicationParameters) params, scope Application applicati
 
     auto openGlContext = sdlEnforce(SDL_GL_CreateContext(window));
     scope(exit) SDL_GL_DeleteContext(openGlContext);
+
+    initializeOpenGL();
+    scope(exit) finalizeOpenGL();
 
     auto timerId = createFPSCountTimer(FPS_COUNT_INTERVAL_MS);
     scope(exit) SDL_RemoveTimer(timerId);
