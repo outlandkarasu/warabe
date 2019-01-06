@@ -44,15 +44,15 @@ import warabe.application :
     ApplicationParameters,
     FrameCounter;
 
+import warabe.opengl :
+    OpenGLVersion,
+    initializeOpenGL,
+    finalizeOpenGL;
+
 import warabe.event : EventHandler, EventHandlerResult;
 import warabe.exception : WarabeException;
 
 enum WINDOW_FLAGS = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL;
-
-enum {
-    OPEN_GL_MAJOR_VERSION = 3,
-    OPEN_GL_MINOR_VERSION = 3
-}
 
 enum FPS_COUNT_INTERVAL_MS = 1000;
 
@@ -87,8 +87,8 @@ void runSDL(ref const(ApplicationParameters) params, scope Application applicati
     sdlEnforce(SDL_Init(SDL_INIT_EVERYTHING) == 0);
     scope(exit) SDL_Quit();
 
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, OPEN_GL_MAJOR_VERSION);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, OPEN_GL_MINOR_VERSION);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, OpenGLVersion.major);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, OpenGLVersion.minor);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
@@ -103,6 +103,9 @@ void runSDL(ref const(ApplicationParameters) params, scope Application applicati
 
     auto openGlContext = sdlEnforce(SDL_GL_CreateContext(window));
     scope(exit) SDL_GL_DeleteContext(openGlContext);
+
+    initializeOpenGL();
+    scope(exit) finalizeOpenGL();
 
     auto timerId = createFPSCountTimer(FPS_COUNT_INTERVAL_MS);
     scope(exit) SDL_RemoveTimer(timerId);
