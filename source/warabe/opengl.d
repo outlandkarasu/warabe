@@ -82,6 +82,19 @@ void finalizeOpenGL()
     unloadOpenGL();
 }
 
+/**
+create empty shader program.
+
+Returns:
+    empty program ID.
+Throws:
+    OpenGLException if failed.
+*/
+GLuint createEmptyProgram()
+{
+    return createShaderProgram(import("empty.vert"), import("empty.frag"));
+}
+
 private:
 
 /**
@@ -96,24 +109,24 @@ Throws:
     OpenGLException throw if failed compile.
 */
 GLuint compileShader(const(GLchar)[] source, GLenum shaderType) {
-    immutable shaderId = glCreateShader(shaderType);
-    scope(failure) glDeleteShader(shaderId);
+    immutable shaderID = glCreateShader(shaderType);
+    scope(failure) glDeleteShader(shaderID);
 
     immutable length = cast(GLint) source.length;
     const sourcePointer = source.ptr;
-    glShaderSource(shaderId, 1, &sourcePointer, &length);
-    glCompileShader(shaderId);
+    glShaderSource(shaderID, 1, &sourcePointer, &length);
+    glCompileShader(shaderID);
 
     GLint status;
-    glGetShaderiv(shaderId, GL_COMPILE_STATUS, &status);
+    glGetShaderiv(shaderID, GL_COMPILE_STATUS, &status);
     if(status == GL_FALSE) {
         GLint logLength;
-        glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &logLength);
+        glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &logLength);
         auto log = new GLchar[logLength];
-        glGetShaderInfoLog(shaderId, logLength, null, log.ptr);
+        glGetShaderInfoLog(shaderID, logLength, null, log.ptr);
         throw new OpenGLException(assumeUnique(log));
     }
-    return shaderId;
+    return shaderID;
 }
 
 /**
@@ -126,29 +139,29 @@ Throws:
     OpenGLException throw if failed build.
 */
 GLuint createShaderProgram(const(GLchar)[] vertexShaderSource, const(GLchar)[] fragmentShaderSource) {
-    immutable vertexShaderId = compileShader(vertexShaderSource, GL_VERTEX_SHADER);
-    scope(exit) glDeleteShader(vertexShaderId);
-    immutable fragmentShaderId = compileShader(fragmentShaderSource, GL_FRAGMENT_SHADER);
-    scope(exit) glDeleteShader(fragmentShaderId);
+    immutable vertexShaderID = compileShader(vertexShaderSource, GL_VERTEX_SHADER);
+    scope(exit) glDeleteShader(vertexShaderID);
+    immutable fragmentShaderID = compileShader(fragmentShaderSource, GL_FRAGMENT_SHADER);
+    scope(exit) glDeleteShader(fragmentShaderID);
 
-    auto programId = glCreateProgram();
-    scope(failure) glDeleteProgram(programId);
-    glAttachShader(programId, vertexShaderId);
-    scope(exit) glDetachShader(programId, vertexShaderId);
-    glAttachShader(programId, fragmentShaderId);
-    scope(exit) glDetachShader(programId, fragmentShaderId);
+    auto programID = glCreateProgram();
+    scope(failure) glDeleteProgram(programID);
+    glAttachShader(programID, vertexShaderID);
+    scope(exit) glDetachShader(programID, vertexShaderID);
+    glAttachShader(programID, fragmentShaderID);
+    scope(exit) glDetachShader(programID, fragmentShaderID);
 
-    glLinkProgram(programId);
+    glLinkProgram(programID);
     GLint status;
-    glGetProgramiv(programId, GL_LINK_STATUS, &status);
+    glGetProgramiv(programID, GL_LINK_STATUS, &status);
     if(status == GL_FALSE) {
         GLint logLength;
-        glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &logLength);
+        glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &logLength);
         auto log = new GLchar[logLength];
-        glGetProgramInfoLog(programId, logLength, null, log.ptr);
+        glGetProgramInfoLog(programID, logLength, null, log.ptr);
         throw new OpenGLException(assumeUnique(log));
     }
 
-    return programId;
+    return programID;
 }
 
