@@ -1,7 +1,22 @@
 module warabe.opengl;
 
+import std.exception : assumeUnique;
+
 import bindbc.opengl :
+    GL_COMPILE_STATUS,
+    GL_FALSE,
+    GL_INFO_LOG_LENGTH,
+    GLchar,
+    GLenum,
+    glCompileShader,
+    glCreateShader,
+    glDeleteShader,
+    glGetShaderiv,
+    glGetShaderInfoLog,
+    GLint,
+    glShaderSource,
     GLSupport,
+    GLuint,
     loadOpenGL,
     unloadOpenGL;
 
@@ -55,5 +70,39 @@ finalize OpenGL libraries.
 void finalizeOpenGL()
 {
     unloadOpenGL();
+}
+
+private:
+
+/**
+compile shader.
+
+Params:
+    source = shader souce string.
+    shaderType = shader type enum.
+Returns:
+    shader id.
+Throws:
+    OpenGlException throw if failed compile.
+*/
+GLuint compileShader(const(GLchar)[] source, GLenum shaderType) {
+    immutable shaderId = glCreateShader(shaderType);
+    scope(failure) glDeleteShader(shaderId);
+
+    immutable length = cast(GLint) source.length;
+    const sourcePointer = source.ptr;
+    glShaderSource(shaderId, 1, &sourcePointer, &length);
+    glCompileShader(shaderId);
+
+    GLint status;
+    glGetShaderiv(shaderId, GL_COMPILE_STATUS, &status);
+    if(status == GL_FALSE) {
+        GLint logLength;
+        glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &logLength);
+        auto log = new GLchar[logLength];
+        glGetShaderInfoLog(shaderId, logLength, null, log.ptr);
+        throw new OpenGLException(assumeUnique(log));
+    }
+    return shaderId;
 }
 
