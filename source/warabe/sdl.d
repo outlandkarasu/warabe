@@ -39,6 +39,8 @@ import bindbc.sdl :
     Uint32,
     unloadSDL;
 
+import bindbc.opengl : glDeleteProgram;
+
 import warabe.application :
     Application,
     ApplicationParameters,
@@ -47,7 +49,8 @@ import warabe.application :
 import warabe.opengl :
     OpenGLVersion,
     initializeOpenGL,
-    finalizeOpenGL;
+    finalizeOpenGL,
+    createEmptyProgram;
 
 import warabe.event : EventHandler, EventHandlerResult;
 import warabe.exception : WarabeException;
@@ -107,8 +110,11 @@ void runSDL(ref const(ApplicationParameters) params, scope Application applicati
     initializeOpenGL();
     scope(exit) finalizeOpenGL();
 
-    auto timerId = createFPSCountTimer(FPS_COUNT_INTERVAL_MS);
-    scope(exit) SDL_RemoveTimer(timerId);
+    immutable emptyProgramID = createEmptyProgram();
+    scope(exit) glDeleteProgram(emptyProgramID);
+
+    auto timerID = createFPSCountTimer(FPS_COUNT_INTERVAL_MS);
+    scope(exit) SDL_RemoveTimer(timerID);
 
     mainLoop(params, application);
 }
@@ -174,9 +180,9 @@ extern(C) @nogc nothrow Uint32 onFPSCountTimer(Uint32 interval, void* param)
 ///
 SDL_TimerID createFPSCountTimer(Uint32 intervalMillis)
 {
-    auto timerId = SDL_AddTimer(intervalMillis, &onFPSCountTimer, null);
-    sdlEnforce(timerId != 0);
-    return timerId;
+    auto timerID = SDL_AddTimer(intervalMillis, &onFPSCountTimer, null);
+    sdlEnforce(timerID != 0);
+    return timerID;
 }
 
 /// main loop function.
