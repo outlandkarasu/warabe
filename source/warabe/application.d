@@ -2,6 +2,7 @@ module warabe.application;
 
 import warabe.event : EventHandler;
 import warabe.sdl : runSDL;
+import warabe.renderer : Renderer;
 
 ///
 struct ApplicationParameters
@@ -18,8 +19,10 @@ struct ApplicationParameters
 interface Application : EventHandler
 {
     /**
-     *  frame render function.
-     */
+    frame render function.
+    Params:
+        renderer = frame renderer.
+    */
     @nogc nothrow void render();
 }
 
