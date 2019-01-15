@@ -19,7 +19,7 @@ Initialize OpenGL library.
 
 Returns:
     loaded version.
-**/
+*/
 GLSupport initializeOpenGL()
 {
     immutable loaded = loadOpenGL();
