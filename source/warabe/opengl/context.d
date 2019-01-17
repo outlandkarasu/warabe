@@ -1,10 +1,15 @@
 module warabe.opengl.context;
 
+import warabe.opengl.exception : checkGLError;
+
 import bindbc.opengl :
+    GL_ARRAY_BUFFER,
+    GL_ELEMENT_ARRAY_BUFFER,
+    glBindBuffer,
+    glBufferSubData,
     glDeleteBuffers,
+    GLenum,
     glGenBuffers,
-    GLintptr,
-    GLsizeiptr,
     GLuint;
 
 import std.typecons : Typedef;
@@ -30,7 +35,7 @@ interface OpenGLContext {
     Throws:
         OpenGLException if failed.
     */
-    VerticesID createVertices(GLsizeiptr size);
+    VerticesID createVertices(uint size);
 
     /**
     copy data to an array buffer.
@@ -42,7 +47,7 @@ interface OpenGLContext {
     Throws:
         OpenGLException if failed.
     */
-    void copyTo(VerticesID id, GLintptr offset, const(void)[] data);
+    void copyTo(VerticesID id, ptrdiff_t offset, const(void)[] data);
 
     /**
     create index array buffer object.
@@ -54,7 +59,7 @@ interface OpenGLContext {
     Throws:
         OpenGLException if failed.
     */
-    IndicesID createIndices(GLsizeiptr size);
+    IndicesID createIndices(uint size);
 
     /**
     copy data to an array buffer.
@@ -66,6 +71,60 @@ interface OpenGLContext {
     Throws:
         OpenGLException if failed.
     */
-    void copyTo(IndicesID id, GLintptr offset, const(void)[] data);
+    void copyTo(IndicesID id, ptrdiff_t offset, const(void)[] data);
+}
+
+private:
+
+/**
+OpenGL context implementation.
+*/
+class OpenGLContextImpl : OpenGLContext
+{
+    override {
+
+        VerticesID createVertices(uint size)
+        {
+            return createBuffer!(typeof(return))(size);
+        }
+    
+        void copyTo(VerticesID id, ptrdiff_t offset, const(void)[] data)
+        {
+            copyToBuffer(GL_ARRAY_BUFFER, id, offset,data);
+        }
+    
+        IndicesID createIndices(uint size)
+        {
+            return createBuffer!(typeof(return))(size);
+        }
+    
+        void copyTo(IndicesID id, ptrdiff_t offset, const(void)[] data)
+        {
+            copyToBuffer(GL_ELEMENT_ARRAY_BUFFER, id, offset,data);
+        }
+    }
+
+private:
+
+    T createBuffer(T)(uint size)
+    {
+        GLuint result;
+        glGenBuffers(1, &result);
+        checkGLError();
+        return T(result);
+    }
+
+    void copyToBuffer(T)(
+            GLenum target,
+            T typedID,
+            ptrdiff_t offset,
+            const(void)[] data)
+    {
+        immutable id = cast(GLuint) typedID;
+        glBindBuffer(target, id);
+        scope(exit) glBindBuffer(target, 0);
+        glBufferSubData(target, offset, data.length, data.ptr);
+        checkGLError();
+    }
 }
 

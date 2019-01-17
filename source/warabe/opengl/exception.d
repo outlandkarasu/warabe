@@ -6,7 +6,13 @@ import std.conv : to;
 
 import bindbc.opengl :
     GLenum,
-    glGetError;
+    glGetError,
+    GL_NO_ERROR,
+    GL_INVALID_ENUM,
+    GL_INVALID_VALUE,
+    GL_INVALID_OPERATION,
+    GL_INVALID_FRAMEBUFFER_OPERATION,
+    GL_OUT_OF_MEMORY;
 
 /**
 OpenGL related exception.
@@ -64,7 +70,7 @@ void checkGLError(string file = __FILE__, size_t line = __LINE__)(GLenum errorCo
         case GL_OUT_OF_MEMORY:
             throw new OpenGLException("GL_OUT_OF_MEMORY", file, line);
         default:
-            throw new OpenGLException("Unknown OpenGL error. " + errorCode.to!string, file, line);
+            throw new OpenGLException("Unknown OpenGL error. " ~ errorCode.to!string, file, line);
     }
 }
 
