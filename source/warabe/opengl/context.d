@@ -20,58 +20,152 @@ alias VerticesID = Typedef!(GLuint, GLuint.init, "VerticesID");
 /// index array buffer ID.
 alias IndicesID = Typedef!(GLuint, GLuint.init, "IndicesID");
 
+/// vertex type predicate.
+enum isVertexType(T) = __traits(isPOD, T);
+
+/// index type predicate.
+enum isIndexType(T) = is(T == ubyte) || is(T == ushort);
+
 /**
 OpenGL context for renderer.
 */
-interface OpenGLContext {
+interface OpenGLContext
+{
 
     /**
     create vertex array buffer object.
 
     Params:
-        size = buffer size.
+        size = buffer byte size.
     Returns:
         buffer object name.
     Throws:
-        OpenGLException if failed.
+        `OpenGLException` thrown if failed.
     */
-    VerticesID createVertices(uint size);
+    VerticesID createVerticesFromBytes(uint size);
 
     /**
-    copy data to an array buffer.
+    create vertex array buffer object.
+
+    Params:
+        T = vertex type.
+        length = vertices length.
+    Returns:
+        buffer object name.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    VerticesID createVertices(T)(uint length)
+    if (isVertexType!T)
+    {
+        return createVerticesFromBytes(cast(uint)(length * T.sizeof));
+    }
+
+    /**
+    copy raw data to an array buffer.
 
     Params:
         id = destination array buffer ID.
         offset = copy start offset from buffer origin.
         data = source data.
     Throws:
-        OpenGLException if failed.
+        `OpenGLException` thrown if failed.
     */
-    void copyTo(VerticesID id, ptrdiff_t offset, const(void)[] data);
+    void copyRawDataTo(VerticesID id, ptrdiff_t offset, const(void)[] data);
+
+    /**
+    copy vertices data to an array buffer.
+
+    Params:
+        T = vertex type.
+        id = destination array buffer ID.
+        offset = copy start offset from buffer origin.
+        data = source data.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    void copyTo(T)(VerticesID id, ptrdiff_t offset, const(T)[] data)
+    if (isVertexType!T)
+    {
+        copyRawDataTo(id, offset, cast(const(void)[]) data);
+    }
+
+    /**
+    delete vertices buffer object.
+
+    Params:
+        id = array buffer ID.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    void deleteVertices(VerticesID id);
 
     /**
     create index array buffer object.
 
     Params:
-        size = buffer size.
+        size = buffer byte size.
     Returns:
         buffer object name.
     Throws:
-        OpenGLException if failed.
+        `OpenGLException` thrown if failed.
     */
-    IndicesID createIndices(uint size);
+    IndicesID createIndicesFromBytes(uint size);
 
     /**
-    copy data to an array buffer.
+    create index array buffer object.
+
+    Params:
+        length = indices length.
+    Returns:
+        buffer object name.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    IndicesID createIndices(T)(uint length)
+    if (isIndexType!T)
+    {
+        return createIndicesFromBytes(cast(uint)(length * T.sizeof));
+    }
+
+    /**
+    delete indices buffer object.
+
+    Params:
+        id = element array buffer ID.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    void deleteIndices(IndicesID id);
+
+    /**
+    copy raw data to an element array buffer.
 
     Params:
         id = destination element array buffer ID.
         offset = copy start offset from buffer origin.
         data = source data.
     Throws:
-        OpenGLException if failed.
+        `OpenGLException` thrown if failed.
     */
-    void copyTo(IndicesID id, ptrdiff_t offset, const(void)[] data);
+    void copyRawDataTo(IndicesID id, ptrdiff_t offset, const(void)[] data);
+
+    /**
+    copy indices data to an element array buffer.
+
+    Params:
+        T = index type.
+        id = destination element array buffer ID.
+        offset = copy start offset from buffer origin.
+        data = source data.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    void copyTo(T)(IndicesID id, ptrdiff_t offset, const(T)[] data)
+    if (isIndexType!T)
+    {
+        copyRawDataTo(id, offset, cast(const(void)[]) data);
+    }
 }
 
 private:
@@ -81,26 +175,37 @@ OpenGL context implementation.
 */
 class OpenGLContextImpl : OpenGLContext
 {
-    override {
+    override
+    {
 
-        VerticesID createVertices(uint size)
+        VerticesID createVerticesFromBytes(uint size)
         {
             return createBuffer!(typeof(return))(size);
         }
     
-        void copyTo(VerticesID id, ptrdiff_t offset, const(void)[] data)
+        void copyRawDataTo(VerticesID id, ptrdiff_t offset, const(void)[] data)
         {
             copyToBuffer(GL_ARRAY_BUFFER, id, offset,data);
         }
+
+        void deleteVertices(VerticesID id)
+        {
+            deleteBuffer(id);
+        }
     
-        IndicesID createIndices(uint size)
+        IndicesID createIndicesFromBytes(uint size)
         {
             return createBuffer!(typeof(return))(size);
         }
     
-        void copyTo(IndicesID id, ptrdiff_t offset, const(void)[] data)
+        void copyRawDataTo(IndicesID id, ptrdiff_t offset, const(void)[] data)
         {
             copyToBuffer(GL_ELEMENT_ARRAY_BUFFER, id, offset,data);
+        }
+
+        void deleteIndices(IndicesID id)
+        {
+            deleteBuffer(id);
         }
     }
 
@@ -124,6 +229,13 @@ private:
         glBindBuffer(target, id);
         scope(exit) glBindBuffer(target, 0);
         glBufferSubData(target, offset, data.length, data.ptr);
+        checkGLError();
+    }
+
+    void deleteBuffer(T)(T typedID)
+    {
+        immutable id = cast(GLuint) typedID;
+        glDeleteBuffers(1, &id);
         checkGLError();
     }
 }

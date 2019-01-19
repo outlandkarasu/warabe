@@ -1,11 +1,10 @@
 module warabe.renderer.rectangle;
 
 import warabe.color : Color;
-
-import bindbc.opengl :
-    glDeleteBuffers,
-    glGenBuffers,
-    GLuint;
+import warabe.opengl :
+    OpenGLContext,
+    VerticesID,
+    IndicesID;
 
 struct VertexPosition
 {
@@ -17,14 +16,17 @@ struct VertexPosition
 ///
 class RectangleBuffer
 {
-    this(size_t length)
+    this(OpenGLContext context, uint length)
     {
-        glGenBuffers(1, &buffer_);
+        this.context_ = context;
+        this.vertices_ = context.createVertices!Vertex(length);
+        this.indices_ = context.createIndices!ushort(length);
     }
 
     ~this()
     {
-        glDeleteBuffers(1, &buffer_);
+        this.context_.deleteVertices(this.vertices_);
+        this.context_.deleteIndices(this.indices_);
     }
 
 private:
@@ -35,6 +37,17 @@ private:
         Color color;
     }
 
-    GLuint buffer_;
+    OpenGLContext context_;
+    VerticesID vertices_;
+    IndicesID indices_;
+}
+
+///
+unittest
+{
+    import std.typecons : BlackHole;
+    scope context = new BlackHole!OpenGLContext;
+
+    scope buffer = new RectangleBuffer(context, 1024);
 }
 
