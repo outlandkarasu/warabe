@@ -1,6 +1,7 @@
 module warabe.renderer.rectangle;
 
 import warabe.color : Color;
+import warabe.coodinates : Rectangle;
 import warabe.opengl :
     OpenGLContext,
     VerticesID,
@@ -14,13 +15,46 @@ struct VertexPosition
 }
 
 ///
-class RectangleBuffer
+class RectangleBufferEntry
 {
-    this(OpenGLContext context, uint length)
+    this(OpenGLContext context, uint count)
     {
         this.context_ = context;
-        this.vertices_ = context.createVertices!Vertex(length);
-        this.indices_ = context.createIndices!ushort(length);
+        this.vertices_ = context.createVertices!Vertex(
+            count * VERTICES_PER_RECT);
+        this.indices_ = context.createIndices!ushort(
+            count * INDICES_PER_RECT);
+        this.count_ = count;
+    }
+
+    @nogc nothrow @property pure @safe bool hasCapacity() const
+    {
+        return verticesEnd_ < (count_ * VERTICES_PER_RECT);
+    }
+
+    void add()(auto ref const(Rectangle) rect, auto ref const(Color) color)
+    in(hasCapacity)
+    do
+    {
+        scope immutable(Vertex)[VERTICES_PER_RECT] vertices = [
+            { VertexPosition(rect.left, rect.top, 0.0f), color },
+            { VertexPosition(rect.right, rect.top, 0.0f), color },
+            { VertexPosition(rect.right, rect.bottom, 0.0f), color },
+            { VertexPosition(rect.left, rect.bottom, 0.0f), color },
+        ];
+        context_.copyTo(vertices_, verticesEnd_, vertices);
+        verticesEnd_ += VERTICES_PER_RECT;
+
+        scope immutable(ushort)[INDICES_PER_RECT] indices = [
+            cast(ushort)(indicesEnd_),
+            cast(ushort)(indicesEnd_ + 1),
+            cast(ushort)(indicesEnd_ + 2),
+            cast(ushort)(indicesEnd_),
+            cast(ushort)(indicesEnd_ + 2),
+            cast(ushort)(indicesEnd_ + 3),
+        ];
+        context_.copyTo(indices_, indicesEnd_, indices);
+        indicesEnd_ += INDICES_PER_RECT;
     }
 
     ~this()
@@ -31,6 +65,12 @@ class RectangleBuffer
 
 private:
 
+    enum
+    {
+        VERTICES_PER_RECT = 4,
+        INDICES_PER_RECT = 6,
+    }
+
     struct Vertex
     {
         VertexPosition position;
@@ -40,14 +80,25 @@ private:
     OpenGLContext context_;
     VerticesID vertices_;
     IndicesID indices_;
+    size_t count_;
+    size_t verticesEnd_;
+    size_t indicesEnd_;
 }
 
 ///
 unittest
 {
     import std.typecons : BlackHole;
+    import warabe.coodinates : Point, Size;
+
     scope context = new BlackHole!OpenGLContext;
 
-    scope buffer = new RectangleBuffer(context, 1024);
+    scope buffer = new RectangleBufferEntry(context, 1);
+    assert(buffer.hasCapacity);
+
+    buffer.add(
+        Rectangle(Point(10, 20), Size(100, 200)),
+        Color(0xff, 0x80, 0x40, 0xff));
+    assert(!buffer.hasCapacity);
 }
 
