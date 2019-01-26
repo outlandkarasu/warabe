@@ -13,6 +13,8 @@ import bindbc.opengl :
     glBindBuffer,
     glBufferSubData,
     glDeleteBuffers,
+    glDisableVertexAttribArray,
+    glEnableVertexAttribArray,
     GLenum,
     glGenBuffers,
     GLuint,
@@ -274,6 +276,22 @@ interface OpenGLContext
         offset = attribute offset from structure base.
     **/
     void vertexAttributes(uint index, int size, GLenum type, bool normalize, uint stride, uint offset);
+
+    /**
+    enable vertex attributes.
+
+    Params:
+        index = attributes index.
+    */
+    void enableVertexAttributes(uint index);
+
+    /**
+    disable vertex attributes.
+
+    Params:
+        index = attributes index.
+    */
+    void disableVertexAttributes(uint index);
 }
 
 private:
@@ -331,6 +349,17 @@ class OpenGLContextImpl : OpenGLContext
                 normalize,
                 stride,
                 cast(const(GLvoid)*) offset);
+            checkGLError();
+        }
+
+        void enableVertexAttributes(uint index)
+        {
+            glEnableVertexAttribArray(index);
+        }
+
+        void disableVertexAttributes(uint index)
+        {
+            glDisableVertexAttribArray(index);
         }
     }
 

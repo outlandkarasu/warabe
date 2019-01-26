@@ -56,8 +56,13 @@ class RectangleBufferEntry
     {
         context_.vertexAttributes!(Vertex, float)(
                 0, 3, Vertex.init.position.offsetof);
+        context_.enableVertexAttributes(0);
+        scope(exit) context_.disableVertexAttributes(0);
+
         context_.vertexAttributes!(Vertex, ubyte)(
                 1, 4, Vertex.init.color.offsetof, true);
+        context_.enableVertexAttributes(1);
+        scope(exit) context_.disableVertexAttributes(1);
     }
 
     ~this()
@@ -103,5 +108,7 @@ unittest
         Rectangle(Point(10, 20), Size(100, 200)),
         Color(0xff, 0x80, 0x40, 0xff));
     assert(!buffer.hasCapacity);
+
+    buffer.draw();
 }
 
