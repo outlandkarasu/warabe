@@ -7,13 +7,21 @@ import bindbc.opengl :
     GL_BYTE,
     GL_ELEMENT_ARRAY_BUFFER,
     GL_FLOAT,
+    GL_LINE_LOOP,
+    GL_LINE_STRIP,
+    GL_LINES,
+    GL_POINTS,
     GL_SHORT,
+    GL_TRIANGLE_STRIP,
+    GL_TRIANGLE_FAN,
+    GL_TRIANGLES,
     GL_UNSIGNED_BYTE,
     GL_UNSIGNED_SHORT,
     glBindBuffer,
     glBufferSubData,
     glDeleteBuffers,
     glDisableVertexAttribArray,
+    glDrawArrays,
     glEnableVertexAttribArray,
     GLenum,
     glGenBuffers,
@@ -80,6 +88,18 @@ template GLTypeEnum(T)
     {
         static assert(false, T.stringof ~ " is not supported.");
     }
+}
+
+/// OpenGL draw mode.
+enum GLDrawMode
+{
+    points = GL_POINTS,
+    lineStrip = GL_LINE_STRIP,
+    lineLoop = GL_LINE_LOOP,
+    lines = GL_LINES,
+    triangleStrip = GL_TRIANGLE_STRIP,
+    triangleFan = GL_TRIANGLE_FAN,
+    triangles = GL_TRIANGLES,
 }
 
 @nogc nothrow pure @safe unittest
@@ -335,6 +355,16 @@ interface OpenGLContext
         index = attributes index.
     */
     void disableVertexAttributes(uint index);
+
+    /**
+    draw arrays.
+
+    Params:
+        mode = OpenGL draw mode.
+        first = indices first index.
+        count = indices count.
+    */
+    void draw(GLDrawMode mode, uint first, uint count);
 }
 
 private:
@@ -423,6 +453,12 @@ class OpenGLContextImpl : OpenGLContext
         void unbindIndices()
         {
             unbindBuffer!IndicesID();
+        }
+
+        void draw(GLDrawMode mode, uint first, uint count)
+        {
+            glDrawArrays(mode, first, count);
+            checkGLError();
         }
     }
 

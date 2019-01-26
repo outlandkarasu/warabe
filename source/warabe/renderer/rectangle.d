@@ -3,6 +3,7 @@ module warabe.renderer.rectangle;
 import warabe.color : Color;
 import warabe.coodinates : Rectangle;
 import warabe.opengl :
+    GLDrawMode,
     OpenGLContext,
     VerticesID,
     IndicesID;
@@ -69,6 +70,8 @@ class RectangleBufferEntry
 
         context_.bind(indices_);
         scope(exit) context_.unbindIndices();
+
+        context_.draw(GLDrawMode.triangles, 0, cast(uint) indicesEnd_);
     }
 
     ~this()
