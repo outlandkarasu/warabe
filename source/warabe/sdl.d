@@ -48,9 +48,7 @@ import warabe.application :
 
 import warabe.opengl :
     OpenGLVersion,
-    initializeOpenGL,
-    finalizeOpenGL,
-    createEmptyProgram;
+    initializeOpenGL;
 
 import warabe.event : EventHandler, EventHandlerResult;
 import warabe.exception : WarabeException;
@@ -107,11 +105,8 @@ void runSDL(ref const(ApplicationParameters) params, scope Application applicati
     auto openGlContext = sdlEnforce(SDL_GL_CreateContext(window));
     scope(exit) SDL_GL_DeleteContext(openGlContext);
 
-    initializeOpenGL();
-    scope(exit) finalizeOpenGL();
-
-    immutable emptyProgramID = createEmptyProgram();
-    scope(exit) glDeleteProgram(emptyProgramID);
+    scope openGLContext = initializeOpenGL();
+    scope(exit) destroy(openGLContext);
 
     auto timerID = createFPSCountTimer(FPS_COUNT_INTERVAL_MS);
     scope(exit) SDL_RemoveTimer(timerID);

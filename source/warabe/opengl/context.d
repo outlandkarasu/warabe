@@ -1,6 +1,7 @@
 module warabe.opengl.context;
 
 import warabe.opengl.exception : checkGLError;
+import warabe.opengl.shader : createShaderProgram;
 
 import bindbc.opengl :
     GL_ARRAY_BUFFER,
@@ -20,11 +21,13 @@ import bindbc.opengl :
     glBindBuffer,
     glBufferSubData,
     glDeleteBuffers,
+    glDeleteProgram,
     glDisableVertexAttribArray,
     glDrawArrays,
     glEnableVertexAttribArray,
     GLenum,
     glGenBuffers,
+    GLSupport,
     GLuint,
     glVertexAttribPointer,
     GLvoid;
@@ -37,6 +40,9 @@ alias VerticesID = Typedef!(GLuint, GLuint.init, "VerticesID");
 
 /// index array buffer ID.
 alias IndicesID = Typedef!(GLuint, GLuint.init, "IndicesID");
+
+/// shader program ID.
+alias ShaderProgramID = Typedef!(GLuint, GLuint.init, "ShaderProgramID");
 
 /// vertex type predicate.
 enum isVertexType(T) = __traits(isPOD, T);
@@ -365,15 +371,51 @@ interface OpenGLContext
         count = indices count.
     */
     void draw(GLDrawMode mode, uint first, uint count);
+
+    /**
+    create shader program.
+
+    Params:
+        vertexShaderSource = vertex shader source string.
+        fragmentShaderSource = fragment shader source string.
+    Returns:
+        shader program ID.
+    */
+    ShaderProgramID createShaderProgram(const(char)[] vertexShaderSource, const(char)[] fragmentShaderSource);
+
+    /**
+    delete shader program.
+
+    Params:
+        id = delete program ID.
+    */
+    void deleteShaderProgram(ShaderProgramID id);
+
+    /**
+    Returns:
+        OpenGL supported version.
+    */
+    @property GLSupport support() const @nogc nothrow pure @safe;
 }
 
-private:
+package:
 
 /**
 OpenGL context implementation.
 */
 class OpenGLContextImpl : OpenGLContext
 {
+    /**
+    construct with support version.
+
+    Params:
+        support = OpenGL support version.
+    */
+    this(GLSupport support)
+    {
+        this.support_ = support;
+    }
+
     override
     {
 
@@ -460,9 +502,29 @@ class OpenGLContextImpl : OpenGLContext
             glDrawArrays(mode, first, count);
             checkGLError();
         }
+
+        ShaderProgramID createShaderProgram(
+                const(char)[] vertexShaderSource,
+                const(char)[] fragmentShaderSource)
+        {
+            return ShaderProgramID(.createShaderProgram(vertexShaderSource, fragmentShaderSource));
+        }
+
+        void deleteShaderProgram(ShaderProgramID id)
+        {
+            glDeleteProgram(cast(GLuint) id);
+        }
+
+        @property GLSupport support() const @nogc nothrow pure @safe
+        {
+            return support_;
+        }
     }
 
 private:
+
+    /// OpenGL support version.
+    GLSupport support_;
 
     T createBuffer(T)(uint size)
     {

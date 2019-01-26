@@ -6,6 +6,7 @@ import bindbc.opengl :
     unloadOpenGL;
 
 import warabe.opengl.exception : OpenGLException;
+import warabe.opengl.context: OpenGLContext, OpenGLContextImpl;
 
 /// required OpenGL version.
 enum OpenGLVersion
@@ -18,9 +19,9 @@ enum OpenGLVersion
 Initialize OpenGL library.
 
 Returns:
-    loaded version.
+    OpenGL context..
 */
-GLSupport initializeOpenGL()
+OpenGLContext initializeOpenGL()
 {
     immutable loaded = loadOpenGL();
     if(loaded == GLSupport.noLibrary) {
@@ -30,14 +31,21 @@ GLSupport initializeOpenGL()
     } else if(loaded == GLSupport.noContext) {
         throw new OpenGLException("OpenGL context not yet created.");
     }
-    return loaded;
+    return new OpenGLContextImplBindBC(loaded);
 }
 
-/**
-finalize OpenGL libraries.
-*/
-void finalizeOpenGL()
+private:
+
+class OpenGLContextImplBindBC : OpenGLContextImpl
 {
-    unloadOpenGL();
+    this(GLSupport support)
+    {
+        super(support);
+    }
+
+    ~this()
+    {
+        unloadOpenGL();
+    }
 }
 

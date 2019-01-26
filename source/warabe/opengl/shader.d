@@ -1,5 +1,8 @@
 module warabe.opengl.shader;
 
+// for inner use only.
+package:
+
 import std.exception : assumeUnique;
 
 import bindbc.opengl :
@@ -28,19 +31,6 @@ import bindbc.opengl :
     GLuint;
 
 import warabe.opengl.exception : OpenGLException;
-
-/**
-create empty shader program.
-
-Returns:
-    empty program ID.
-Throws:
-    OpenGLException if failed.
-*/
-GLuint createEmptyProgram()
-{
-    return createShaderProgram(import("empty.vert"), import("empty.frag"));
-}
 
 /**
 Params:
