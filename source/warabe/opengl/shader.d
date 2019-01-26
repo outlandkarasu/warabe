@@ -43,38 +43,6 @@ GLuint createEmptyProgram()
 }
 
 /**
-compile shader.
-
-Params:
-    source = shader souce string.
-    shaderType = shader type enum.
-Returns:
-    shader ID.
-Throws:
-    OpenGLException throw if failed compile.
-*/
-GLuint compileShader(const(GLchar)[] source, GLenum shaderType) {
-    immutable shaderID = glCreateShader(shaderType);
-    scope(failure) glDeleteShader(shaderID);
-
-    immutable length = cast(GLint) source.length;
-    const sourcePointer = source.ptr;
-    glShaderSource(shaderID, 1, &sourcePointer, &length);
-    glCompileShader(shaderID);
-
-    GLint status;
-    glGetShaderiv(shaderID, GL_COMPILE_STATUS, &status);
-    if(status == GL_FALSE) {
-        GLint logLength;
-        glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &logLength);
-        auto log = new GLchar[logLength];
-        glGetShaderInfoLog(shaderID, logLength, null, log.ptr);
-        throw new OpenGLException(assumeUnique(log));
-    }
-    return shaderID;
-}
-
-/**
 Params:
     vertexShaderSource = vertex shader program source.
     fragmentShaderSource = fragment shader program source.
@@ -108,5 +76,39 @@ GLuint createShaderProgram(const(GLchar)[] vertexShaderSource, const(GLchar)[] f
     }
 
     return programID;
+}
+
+private:
+
+/**
+compile shader.
+
+Params:
+    source = shader souce string.
+    shaderType = shader type enum.
+Returns:
+    shader ID.
+Throws:
+    OpenGLException throw if failed compile.
+*/
+GLuint compileShader(const(GLchar)[] source, GLenum shaderType) {
+    immutable shaderID = glCreateShader(shaderType);
+    scope(failure) glDeleteShader(shaderID);
+
+    immutable length = cast(GLint) source.length;
+    const sourcePointer = source.ptr;
+    glShaderSource(shaderID, 1, &sourcePointer, &length);
+    glCompileShader(shaderID);
+
+    GLint status;
+    glGetShaderiv(shaderID, GL_COMPILE_STATUS, &status);
+    if(status == GL_FALSE) {
+        GLint logLength;
+        glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &logLength);
+        auto log = new GLchar[logLength];
+        glGetShaderInfoLog(shaderID, logLength, null, log.ptr);
+        throw new OpenGLException(assumeUnique(log));
+    }
+    return shaderID;
 }
 
