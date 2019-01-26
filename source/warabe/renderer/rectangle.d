@@ -4,14 +4,15 @@ import warabe.color : Color;
 import warabe.coodinates : Rectangle;
 import warabe.opengl :
     GLDrawMode,
+    IndicesID,
     OpenGLContext,
-    VerticesID,
-    IndicesID;
+    ShaderProgramID,
+    VerticesID;
 
 ///
 class RectangleBufferEntry
 {
-    this(OpenGLContext context, uint count)
+    this(OpenGLContext context, ShaderProgramID program, uint count)
     {
         this.context_ = context;
         this.vertices_ = context.createVertices!Vertex(
@@ -19,6 +20,7 @@ class RectangleBufferEntry
         this.indices_ = context.createIndices!ushort(
             count * INDICES_PER_RECT);
         this.count_ = count;
+        this.program_ = program;
     }
 
     @nogc nothrow @property pure @safe bool hasCapacity() const
@@ -71,6 +73,9 @@ class RectangleBufferEntry
         context_.bind(indices_);
         scope(exit) context_.unbindIndices();
 
+        context_.useProgram(program_);
+        scope(exit) context_.unuseProgram();
+
         context_.draw(GLDrawMode.triangles, 0, cast(uint) indicesEnd_);
     }
 
@@ -97,6 +102,7 @@ private:
     OpenGLContext context_;
     VerticesID vertices_;
     IndicesID indices_;
+    ShaderProgramID program_;
     size_t count_;
     size_t verticesEnd_;
     size_t indicesEnd_;
@@ -110,7 +116,7 @@ unittest
 
     scope context = new BlackHole!OpenGLContext;
 
-    scope buffer = new RectangleBufferEntry(context, 1);
+    scope buffer = new RectangleBufferEntry(context, ShaderProgramID(123), 1);
     assert(buffer.hasCapacity);
 
     buffer.add(

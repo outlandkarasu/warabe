@@ -29,6 +29,7 @@ import bindbc.opengl :
     glGenBuffers,
     GLSupport,
     GLuint,
+    glUseProgram,
     glVertexAttribPointer,
     GLvoid;
 
@@ -392,6 +393,19 @@ interface OpenGLContext
     void deleteShaderProgram(ShaderProgramID id);
 
     /**
+    use shader program.
+
+    Params:
+        id = shader program ID.
+    */
+    void useProgram(ShaderProgramID id);
+
+    /**
+    unuse shader program.
+    */
+    void unuseProgram();
+
+    /**
     Returns:
         OpenGL supported version.
     */
@@ -480,11 +494,13 @@ class OpenGLContextImpl : OpenGLContext
         void enableVertexAttributes(uint index)
         {
             glEnableVertexAttribArray(index);
+            checkGLError();
         }
 
         void disableVertexAttributes(uint index)
         {
             glDisableVertexAttribArray(index);
+            checkGLError();
         }
 
         void bind(IndicesID id)
@@ -510,9 +526,22 @@ class OpenGLContextImpl : OpenGLContext
             return ShaderProgramID(.createShaderProgram(vertexShaderSource, fragmentShaderSource));
         }
 
+        void useProgram(ShaderProgramID id)
+        {
+            glUseProgram(cast(GLuint) id);
+            checkGLError();
+        }
+
+        void unuseProgram()
+        {
+            glUseProgram(0);
+            checkGLError();
+        }
+
         void deleteShaderProgram(ShaderProgramID id)
         {
             glDeleteProgram(cast(GLuint) id);
+            checkGLError();
         }
 
         @property GLSupport support() const @nogc nothrow pure @safe
