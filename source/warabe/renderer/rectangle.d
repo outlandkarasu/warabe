@@ -7,13 +7,6 @@ import warabe.opengl :
     VerticesID,
     IndicesID;
 
-struct VertexPosition
-{
-    float x;
-    float y;
-    float z;
-}
-
 ///
 class RectangleBufferEntry
 {
@@ -36,11 +29,13 @@ class RectangleBufferEntry
     in(hasCapacity)
     do
     {
+        scope immutable(ubyte)[4] colorArray = [
+            color.red, color.green, color.blue, color.alpha];
         scope immutable(Vertex)[VERTICES_PER_RECT] vertices = [
-            { VertexPosition(rect.left, rect.top, 0.0f), color },
-            { VertexPosition(rect.right, rect.top, 0.0f), color },
-            { VertexPosition(rect.right, rect.bottom, 0.0f), color },
-            { VertexPosition(rect.left, rect.bottom, 0.0f), color },
+            { [rect.left, rect.top, 0.0f], colorArray },
+            { [rect.right, rect.top, 0.0f], colorArray },
+            { [rect.right, rect.bottom, 0.0f], colorArray },
+            { [rect.left, rect.bottom, 0.0f], colorArray },
         ];
         context_.copyTo(vertices_, verticesEnd_, vertices);
         verticesEnd_ += VERTICES_PER_RECT;
@@ -55,6 +50,14 @@ class RectangleBufferEntry
         ];
         context_.copyTo(indices_, indicesEnd_, indices);
         indicesEnd_ += INDICES_PER_RECT;
+    }
+
+    void draw()
+    {
+        context_.vertexAttributes!(Vertex, float)(
+                0, 3, Vertex.init.position.offsetof);
+        context_.vertexAttributes!(Vertex, ubyte)(
+                1, 4, Vertex.init.color.offsetof, true);
     }
 
     ~this()
@@ -73,8 +76,8 @@ private:
 
     struct Vertex
     {
-        VertexPosition position;
-        Color color;
+        float[3] position;
+        ubyte[4] color;
     }
 
     OpenGLContext context_;

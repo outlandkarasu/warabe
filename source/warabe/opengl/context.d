@@ -4,14 +4,22 @@ import warabe.opengl.exception : checkGLError;
 
 import bindbc.opengl :
     GL_ARRAY_BUFFER,
+    GL_BYTE,
     GL_ELEMENT_ARRAY_BUFFER,
+    GL_FLOAT,
+    GL_SHORT,
+    GL_UNSIGNED_BYTE,
+    GL_UNSIGNED_SHORT,
     glBindBuffer,
     glBufferSubData,
     glDeleteBuffers,
     GLenum,
     glGenBuffers,
-    GLuint;
+    GLuint,
+    glVertexAttribPointer,
+    GLvoid;
 
+import std.traits : isIntegral;
 import std.typecons : Typedef;
 
 /// vertex array buffer ID.
@@ -25,6 +33,44 @@ enum isVertexType(T) = __traits(isPOD, T);
 
 /// index type predicate.
 enum isIndexType(T) = is(T == ubyte) || is(T == ushort);
+
+/// OpenGL element type enum.
+template GLTypeEnum(T)
+{
+    static if (is(T == byte))
+    {
+        enum GLTypeEnum = GL_BYTE;
+    }
+    else static if (is(T == ubyte))
+    {
+        enum GLTypeEnum = GL_UNSIGNED_BYTE;
+    }
+    else static if (is(T == short))
+    {
+        enum GLTypeEnum = GL_SHORT;
+    }
+    else static if (is(T == ushort))
+    {
+        enum GLTypeEnum = GL_UNSIGNED_SHORT;
+    }
+    else static if (is(T == float))
+    {
+        enum GLTypeEnum = GL_FLOAT;
+    }
+    else
+    {
+        static assert(false, T.stringof ~ " is not supported.");
+    }
+}
+
+@nogc nothrow pure @safe unittest
+{
+    static assert(GLTypeEnum!byte == GL_BYTE);
+    static assert(GLTypeEnum!ubyte == GL_UNSIGNED_BYTE);
+    static assert(GLTypeEnum!short == GL_SHORT);
+    static assert(GLTypeEnum!ushort == GL_UNSIGNED_SHORT);
+    static assert(GLTypeEnum!float == GL_FLOAT);
+}
 
 /**
 OpenGL context for renderer.
@@ -166,6 +212,68 @@ interface OpenGLContext
     {
         copyRawDataTo(id, offset, cast(const(void)[]) data);
     }
+
+    /**
+    set up vertex attribute.
+
+    Params:
+        V = vertex type.
+        T = element type.
+        index = attribute index.
+        length = field length.
+        offset = field offset.
+    **/
+    void vertexAttributes(V, T)(uint index, uint length, uint offset)
+    if (isVertexType!V)
+    in (length <= 4)
+    do
+    {
+        vertexAttributes(
+            index,
+            length,
+            GLTypeEnum!T,
+            false,
+            V.sizeof,
+            offset);
+    }
+
+    /**
+    set up vertex attribute.
+
+    Params:
+        V = vertex type.
+        T = element type.
+        index = attribute index.
+        length = field length.
+        offset = field offset.
+        normalize = normalize flag.
+    **/
+    void vertexAttributes(V, T)(uint index, uint length, uint offset, bool normalize)
+    if (isVertexType!V && isIntegral!T)
+    in (length <= 4)
+    do
+    {
+        vertexAttributes(
+            index,
+            length,
+            GLTypeEnum!T,
+            normalize,
+            V.sizeof,
+            offset);
+    }
+
+    /**
+    set up vertex attribute.
+
+    Params:
+        index = attribute index.
+        size = attribute size.
+        type = attribute component type.
+        normalize = normalize flag for integer type.
+        stride = attribute structure size.
+        offset = attribute offset from structure base.
+    **/
+    void vertexAttributes(uint index, int size, GLenum type, bool normalize, uint stride, uint offset);
 }
 
 private:
@@ -206,6 +314,23 @@ class OpenGLContextImpl : OpenGLContext
         void deleteIndices(IndicesID id)
         {
             deleteBuffer(id);
+        }
+
+        void vertexAttributes(
+            uint index,
+            int size,
+            GLenum type,
+            bool normalize,
+            uint stride,
+            uint offset)
+        {
+            glVertexAttribPointer(
+                index,
+                size,
+                type,
+                normalize,
+                stride,
+                cast(const(GLvoid)*) offset);
         }
     }
 
