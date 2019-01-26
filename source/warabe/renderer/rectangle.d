@@ -59,10 +59,16 @@ class RectangleBufferEntry
         context_.enableVertexAttributes(0);
         scope(exit) context_.disableVertexAttributes(0);
 
+        context_.bind(vertices_);
+        scope(exit) context_.unbindVertices();
+
         context_.vertexAttributes!(Vertex, ubyte)(
                 1, 4, Vertex.init.color.offsetof, true);
         context_.enableVertexAttributes(1);
         scope(exit) context_.disableVertexAttributes(1);
+
+        context_.bind(indices_);
+        scope(exit) context_.unbindIndices();
     }
 
     ~this()

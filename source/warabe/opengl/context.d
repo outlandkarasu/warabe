@@ -36,6 +36,23 @@ enum isVertexType(T) = __traits(isPOD, T);
 /// index type predicate.
 enum isIndexType(T) = is(T == ubyte) || is(T == ushort);
 
+/// OpenGL buffer type enum.
+template GLBufferTypeEnum(T)
+{
+    static if (is(T == VerticesID))
+    {
+        enum GLBufferTypeEnum = GL_ARRAY_BUFFER;
+    }
+    else static if (is(T == IndicesID))
+    {
+        enum GLBufferTypeEnum = GL_ELEMENT_ARRAY_BUFFER;
+    }
+    else
+    {
+        static assert(false, T.stringof ~ " is not supported.");
+    }
+}
+
 /// OpenGL element type enum.
 template GLTypeEnum(T)
 {
@@ -149,6 +166,19 @@ interface OpenGLContext
     void deleteVertices(VerticesID id);
 
     /**
+    bind vertices buffer.
+
+    Params:
+        id = array buffer ID.
+    */
+    void bind(VerticesID id);
+
+    /**
+    unbind vertices buffer.
+    */
+    void unbindVertices();
+
+    /**
     create index array buffer object.
 
     Params:
@@ -185,6 +215,19 @@ interface OpenGLContext
         `OpenGLException` thrown if failed.
     */
     void deleteIndices(IndicesID id);
+
+    /**
+    bind indices buffer.
+
+    Params:
+        id = array buffer ID.
+    */
+    void bind(IndicesID id);
+
+    /**
+    unbind indices buffer.
+    */
+    void unbindIndices();
 
     /**
     copy raw data to an element array buffer.
@@ -308,15 +351,25 @@ class OpenGLContextImpl : OpenGLContext
         {
             return createBuffer!(typeof(return))(size);
         }
-    
+
         void copyRawDataTo(VerticesID id, ptrdiff_t offset, const(void)[] data)
         {
-            copyToBuffer(GL_ARRAY_BUFFER, id, offset,data);
+            copyToBuffer(id, offset,data);
         }
 
         void deleteVertices(VerticesID id)
         {
             deleteBuffer(id);
+        }
+
+        void bind(VerticesID id)
+        {
+            bindBuffer(id);
+        }
+
+        void unbindVertices()
+        {
+            unbindBuffer!VerticesID();
         }
     
         IndicesID createIndicesFromBytes(uint size)
@@ -326,7 +379,7 @@ class OpenGLContextImpl : OpenGLContext
     
         void copyRawDataTo(IndicesID id, ptrdiff_t offset, const(void)[] data)
         {
-            copyToBuffer(GL_ELEMENT_ARRAY_BUFFER, id, offset,data);
+            copyToBuffer(id, offset,data);
         }
 
         void deleteIndices(IndicesID id)
@@ -361,6 +414,16 @@ class OpenGLContextImpl : OpenGLContext
         {
             glDisableVertexAttribArray(index);
         }
+
+        void bind(IndicesID id)
+        {
+            bindBuffer(id);
+        }
+
+        void unbindIndices()
+        {
+            unbindBuffer!IndicesID();
+        }
     }
 
 private:
@@ -374,15 +437,15 @@ private:
     }
 
     void copyToBuffer(T)(
-            GLenum target,
             T typedID,
             ptrdiff_t offset,
             const(void)[] data)
     {
+        enum target = GLBufferTypeEnum!T;
         immutable id = cast(GLuint) typedID;
         glBindBuffer(target, id);
         scope(exit) glBindBuffer(target, 0);
-        glBufferSubData(target, offset, data.length, data.ptr);
+        glBufferSubData(GLBufferTypeEnum!T, offset, data.length, data.ptr);
         checkGLError();
     }
 
@@ -390,6 +453,19 @@ private:
     {
         immutable id = cast(GLuint) typedID;
         glDeleteBuffers(1, &id);
+        checkGLError();
+    }
+
+    void bindBuffer(T)(T typedID)
+    {
+        immutable id = cast(GLuint) typedID;
+        glBindBuffer(GLBufferTypeEnum!T, id);
+        checkGLError();
+    }
+
+    void unbindBuffer(T)()
+    {
+        glBindBuffer(GLBufferTypeEnum!T, 0);
         checkGLError();
     }
 }
