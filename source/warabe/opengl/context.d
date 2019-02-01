@@ -13,12 +13,14 @@ import bindbc.opengl :
     GL_LINES,
     GL_POINTS,
     GL_SHORT,
+    GL_STREAM_DRAW,
     GL_TRIANGLE_STRIP,
     GL_TRIANGLE_FAN,
     GL_TRIANGLES,
     GL_UNSIGNED_BYTE,
     GL_UNSIGNED_SHORT,
     glBindBuffer,
+    glBufferData,
     glBufferSubData,
     glDeleteBuffers,
     glDeleteProgram,
@@ -179,7 +181,7 @@ interface OpenGLContext
     void copyTo(T)(VerticesID id, ptrdiff_t offset, const(T)[] data)
     if (isVertexType!T)
     {
-        copyRawDataTo(id, offset, cast(const(void)[]) data);
+        copyRawDataTo(id, offset * T.sizeof, cast(const(void)[]) data);
     }
 
     /**
@@ -282,7 +284,7 @@ interface OpenGLContext
     void copyTo(T)(IndicesID id, ptrdiff_t offset, const(T)[] data)
     if (isIndexType!T)
     {
-        copyRawDataTo(id, offset, cast(const(void)[]) data);
+        copyRawDataTo(id, offset * T.sizeof, cast(const(void)[]) data);
     }
 
     /**
@@ -465,7 +467,7 @@ class OpenGLContextImpl : OpenGLContext
     
         void copyRawDataTo(IndicesID id, ptrdiff_t offset, const(void)[] data)
         {
-            copyToBuffer(id, offset,data);
+            copyToBuffer(id, offset, data);
         }
 
         void deleteIndices(IndicesID id)
@@ -560,6 +562,12 @@ private:
         GLuint result;
         glGenBuffers(1, &result);
         checkGLError();
+
+        enum target = GLBufferTypeEnum!T;
+        glBindBuffer(target, result);
+        scope(exit) glBindBuffer(target, 0);
+        glBufferData(target, size, null, GL_STREAM_DRAW);
+        checkGLError();
         return T(result);
     }
 
@@ -567,6 +575,8 @@ private:
             T typedID,
             ptrdiff_t offset,
             const(void)[] data)
+    in(cast(GLuint) typedID != 0)
+    do
     {
         enum target = GLBufferTypeEnum!T;
         immutable id = cast(GLuint) typedID;
