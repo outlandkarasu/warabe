@@ -20,15 +20,18 @@ import bindbc.opengl :
     GL_UNSIGNED_BYTE,
     GL_UNSIGNED_SHORT,
     glBindBuffer,
+    glBindVertexArray,
     glBufferData,
     glBufferSubData,
     glDeleteBuffers,
     glDeleteProgram,
+    glDeleteVertexArrays,
     glDisableVertexAttribArray,
     glDrawArrays,
     glEnableVertexAttribArray,
     GLenum,
     glGenBuffers,
+    glGenVertexArrays,
     GLSupport,
     GLuint,
     glUseProgram,
@@ -46,6 +49,10 @@ alias IndicesID = Typedef!(GLuint, GLuint.init, "IndicesID");
 
 /// shader program ID.
 alias ShaderProgramID = Typedef!(GLuint, GLuint.init, "ShaderProgramID");
+
+/// vertex array ID.
+alias VertexArrayID = Typedef!(GLuint, GLuint.init, "VertexArrayID");
+
 
 /// vertex type predicate.
 enum isVertexType(T) = __traits(isPOD, T);
@@ -408,6 +415,35 @@ interface OpenGLContext
     void unuseProgram();
 
     /**
+      create vertex array object.
+
+    Returns:
+        vertex array object ID.
+    */
+    VertexArrayID createVAO();
+
+    /**
+    delete vertex array object ID.
+
+    Params:
+        delete vertex array object.
+    */
+    void deleteVAO(VertexArrayID id);
+
+    /**
+    bind vertex array object.
+
+    Params:
+        id = vertex array object ID.
+    */
+    void bind(VertexArrayID id);
+
+    /**
+    unbind vertex array object.
+    */
+    void unbindVAO();
+
+    /**
     Returns:
         OpenGL supported version.
     */
@@ -544,6 +580,31 @@ class OpenGLContextImpl : OpenGLContext
         {
             glDeleteProgram(cast(GLuint) id);
             checkGLError();
+        }
+
+        VertexArrayID createVAO()
+        {
+            GLuint id;
+            glGenVertexArrays(1, &id);
+            checkGLError();
+            return VertexArrayID(id);
+        }
+
+        void deleteVAO(VertexArrayID id)
+        {
+            immutable iid = cast(GLuint) id;
+            glDeleteVertexArrays(1, &iid);
+            checkGLError();
+        }
+
+        void bind(VertexArrayID id)
+        {
+            glBindVertexArray(cast(GLuint) id);
+        }
+
+        void unbindVAO()
+        {
+            glBindVertexArray(0);
         }
 
         @property GLSupport support() const @nogc nothrow pure @safe
