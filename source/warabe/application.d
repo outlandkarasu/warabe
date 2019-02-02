@@ -2,6 +2,8 @@ module warabe.application;
 
 import warabe.event : EventHandler;
 import warabe.sdl : runSDL;
+import warabe.opengl : OpenGLContext;
+import warabe.renderer : Renderer;
 
 ///
 struct ApplicationParameters
@@ -18,9 +20,11 @@ struct ApplicationParameters
 interface Application : EventHandler
 {
     /**
-     *  frame render function.
-     */
-    @nogc nothrow void render();
+    frame render function.
+    Params:
+        openGLContext = OpenGL renderer context.
+    */
+    void render(scope OpenGLContext openGLContext);
 }
 
 /**

@@ -47,10 +47,9 @@ import warabe.application :
     FrameCounter;
 
 import warabe.opengl :
+    OpenGLContext,
     OpenGLVersion,
-    initializeOpenGL,
-    finalizeOpenGL,
-    createEmptyProgram;
+    initializeOpenGL;
 
 import warabe.event : EventHandler, EventHandlerResult;
 import warabe.exception : WarabeException;
@@ -107,16 +106,13 @@ void runSDL(ref const(ApplicationParameters) params, scope Application applicati
     auto openGlContext = sdlEnforce(SDL_GL_CreateContext(window));
     scope(exit) SDL_GL_DeleteContext(openGlContext);
 
-    initializeOpenGL();
-    scope(exit) finalizeOpenGL();
-
-    immutable emptyProgramID = createEmptyProgram();
-    scope(exit) glDeleteProgram(emptyProgramID);
+    scope openGLContext = initializeOpenGL();
+    scope(exit) destroy(openGLContext);
 
     auto timerID = createFPSCountTimer(FPS_COUNT_INTERVAL_MS);
     scope(exit) SDL_RemoveTimer(timerID);
 
-    mainLoop(params, application);
+    mainLoop(params, openGLContext, application);
 }
 
 private:
@@ -188,6 +184,7 @@ SDL_TimerID createFPSCountTimer(Uint32 intervalMillis)
 /// main loop function.
 void mainLoop(
         ref const(ApplicationParameters) params,
+        scope OpenGLContext openGLContext,
         scope Application application)
 {
     immutable frequency = SDL_GetPerformanceFrequency();
@@ -217,7 +214,7 @@ void mainLoop(
         }
 
         // render a frame.
-        application.render();
+        application.render(openGLContext);
 
         immutable elapse = (SDL_GetPerformanceCounter() - start) * 1000.0f / frequency;
         SDL_Delay((msPerFrame > elapse) ? cast(uint)(msPerFrame - elapse) : 0);
