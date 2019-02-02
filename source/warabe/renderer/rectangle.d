@@ -7,6 +7,7 @@ import warabe.opengl :
     IndicesID,
     OpenGLContext,
     ShaderProgramID,
+    VertexArrayID,
     VerticesID;
 
 ///
@@ -19,6 +20,7 @@ class RectangleBufferEntry
             count * VERTICES_PER_RECT);
         this.indices_ = context.createIndices!ushort(
             count * INDICES_PER_RECT);
+        this.vao_ = context.createVAO();
         this.count_ = count;
         this.program_ = program;
     }
@@ -57,21 +59,9 @@ class RectangleBufferEntry
 
     void draw()
     {
-        context_.vertexAttributes!(Vertex, float)(
-                0, 3, Vertex.init.position.offsetof);
-        context_.enableVertexAttributes(0);
-        scope(exit) context_.disableVertexAttributes(0);
-
-        context_.bind(vertices_);
-        scope(exit) context_.unbindVertices();
-
-        context_.vertexAttributes!(Vertex, ubyte)(
-                1, 4, Vertex.init.color.offsetof, true);
-        context_.enableVertexAttributes(1);
-        scope(exit) context_.disableVertexAttributes(1);
-
-        context_.bind(indices_);
-        scope(exit) context_.unbindIndices();
+        setUpVAO();
+        context_.bind(vao_);
+        scope(exit) context_.unbindVAO();
 
         context_.useProgram(program_);
         scope(exit) context_.unuseProgram();
@@ -83,6 +73,7 @@ class RectangleBufferEntry
     {
         this.context_.deleteVertices(this.vertices_);
         this.context_.deleteIndices(this.indices_);
+        this.context_.deleteVAO(this.vao_);
     }
 
 private:
@@ -99,7 +90,29 @@ private:
         ubyte[4] color;
     }
 
+    void setUpVAO()
+    {
+        context_.bind(vao_);
+
+        context_.bind(vertices_);
+        scope(exit) context_.unbindVertices();
+
+        context_.vertexAttributes!(Vertex, float)(
+                0, 3, Vertex.init.position.offsetof);
+        context_.enableVertexAttributes(0);
+
+        context_.vertexAttributes!(Vertex, ubyte)(
+                1, 4, Vertex.init.color.offsetof, true);
+        context_.enableVertexAttributes(1);
+
+        context_.bind(indices_);
+        scope(exit) context_.unbindIndices();
+
+        context_.unbindVAO();
+    }
+
     OpenGLContext context_;
+    VertexArrayID vao_;
     VerticesID vertices_;
     IndicesID indices_;
     ShaderProgramID program_;
@@ -120,7 +133,7 @@ unittest
     assert(buffer.hasCapacity);
 
     buffer.add(
-        Rectangle(Point(10, 20), Size(100, 200)),
+        Rectangle(10, 20, 100, 200),
         Color(0xff, 0x80, 0x40, 0xff));
     assert(!buffer.hasCapacity);
 
