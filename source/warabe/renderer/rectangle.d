@@ -31,8 +31,11 @@ class RectangleBufferEntry
     }
 
     void add()(auto ref const(Rectangle) rect, auto ref const(Color) color)
-    in(hasCapacity)
-    do
+    in
+    {
+        assert(hasCapacity);
+    }
+    body
     {
         scope immutable(ubyte)[4] colorArray = [
             color.red, color.green, color.blue, color.alpha];

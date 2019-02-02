@@ -306,8 +306,11 @@ interface OpenGLContext
     **/
     void vertexAttributes(V, T)(uint index, uint length, uint offset)
     if (isVertexType!V)
-    in (length <= 4)
-    do
+    in
+    {
+        assert(length <= 4);
+    }
+    body
     {
         vertexAttributes(
             index,
@@ -331,8 +334,11 @@ interface OpenGLContext
     **/
     void vertexAttributes(V, T)(uint index, uint length, uint offset, bool normalize)
     if (isVertexType!V && isIntegral!T)
-    in (length <= 4)
-    do
+    in
+    {
+        assert(length <= 4);
+    }
+    body
     {
         vertexAttributes(
             index,
@@ -636,8 +642,11 @@ private:
             T typedID,
             ptrdiff_t offset,
             const(void)[] data)
-    in(cast(GLuint) typedID != 0)
-    do
+    in
+    {
+        assert(cast(GLuint) typedID != 0);
+    }
+    body
     {
         enum target = GLBufferTypeEnum!T;
         immutable id = cast(GLuint) typedID;
