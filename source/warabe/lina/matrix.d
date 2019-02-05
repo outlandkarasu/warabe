@@ -1,6 +1,7 @@
 module warabe.lina.matrix;
 
 import std.conv : to;
+import std.traits : isNumeric;
 
 /**
 column major matrix structure.
@@ -12,6 +13,9 @@ Params:
 */
 struct Matrix(E, size_t R, size_t C)
 {
+    static assert(R > 0 && C > 0);
+    static assert(isNumeric!E);
+
     alias ElementType = E;
 
     enum
