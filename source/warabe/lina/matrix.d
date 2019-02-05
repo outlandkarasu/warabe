@@ -130,3 +130,30 @@ ref auto identity(E, size_t D)(auto ref return Matrix!(E, D, D) m)
     assert(approxEqual(m[1, 1], 1.0f));
 }
 
+/**
+create identity matrix.
+
+Params:
+    E = element type.
+    D = row and column count.
+Returns:
+    identity matrix.
+*/
+@nogc nothrow pure @safe
+auto identity(E, size_t D)()
+{
+    Matrix!(E, D, D) m = void;
+    return m.identity;
+}
+
+///
+@nogc nothrow pure @safe unittest
+{
+    import std.math : approxEqual;
+    auto m = identity!(float, 2);
+    assert(approxEqual(m[0, 0], 1.0f));
+    assert(approxEqual(m[1, 0], 0.0f));
+    assert(approxEqual(m[0, 1], 0.0f));
+    assert(approxEqual(m[1, 1], 1.0f));
+}
+
