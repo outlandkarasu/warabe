@@ -47,6 +47,26 @@ struct Matrix(E, size_t R, size_t C)
         {
             return (elements_[col][row] = value);
         }
+
+        ref typeof(this) fill(E value)
+        {
+            foreach (ref col; elements_)
+            {
+                col[] = value;
+            }
+            return this;
+        }
+
+        ///
+        unittest
+        {
+            auto m = Matrix!(int, 2, 2)();
+            m.fill(999);
+            assert(m[0, 0] == 999);
+            assert(m[1, 0] == 999);
+            assert(m[0, 1] == 999);
+            assert(m[1, 1] == 999);
+        }
     }
 
     @safe string toString() const
@@ -76,5 +96,37 @@ private:
     m[1, 0] = 3.0f;
     m[1, 1] = 4.0f;
     assert(m.toString == "[[1, 3], [2, 4]]", m.toString);
+}
+
+/**
+to identity matrix.
+
+Params:
+    E = element type.
+    D = row and column count.
+    m = target matrix.
+Returns:
+    identity matrix.
+*/
+@nogc nothrow pure @safe
+ref auto identity(E, size_t D)(auto ref return Matrix!(E, D, D) m)
+{
+    m.fill(cast(E) 0);
+    for (size_t i = 0; i < D; ++i)
+    {
+        m[i, i] = cast(E) 1;
+    }
+    return m;
+}
+
+///
+@nogc nothrow pure @safe unittest
+{
+    import std.math : approxEqual;
+    auto m = Matrix!(float, 2, 2)().identity;
+    assert(approxEqual(m[0, 0], 1.0f));
+    assert(approxEqual(m[1, 0], 0.0f));
+    assert(approxEqual(m[0, 1], 0.0f));
+    assert(approxEqual(m[1, 1], 1.0f));
 }
 
