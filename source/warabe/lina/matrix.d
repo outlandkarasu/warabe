@@ -157,3 +157,62 @@ auto identity(E, size_t D)()
     assert(approxEqual(m[1, 1], 1.0f));
 }
 
+/**
+to scale X axis matrix.
+
+Params:
+    E = element type.
+    D = row and column count.
+    m = target matrix.
+    scale = scale factor.
+Returns:
+    identity matrix.
+*/
+@nogc nothrow pure @safe
+ref auto scaleX(E, size_t D)(auto ref return Matrix!(E, D, D) m, E scale)
+{
+    m.identity();
+    m[0, 0] = scale;
+    return m;
+}
+
+///
+@nogc nothrow pure @safe unittest
+{
+    import std.math : approxEqual;
+    auto m = Matrix!(float, 4, 4)().scaleX(2.0f);
+    assert(approxEqual(m[0, 0], 2.0f));
+    assert(approxEqual(m[1, 1], 1.0f));
+    assert(approxEqual(m[2, 2], 1.0f));
+    assert(approxEqual(m[3, 3], 1.0f));
+}
+
+/**
+create scale X axis matrix.
+
+Params:
+    E = element type.
+    D = row and column count.
+    m = target matrix.
+    scale = scale factor.
+Returns:
+    identity matrix.
+*/
+@nogc nothrow pure @safe
+ref auto scaleX(E, size_t D)(E scale)
+{
+    auto m = identity!(E, D);
+    return m.scaleX(scale);
+}
+
+///
+@nogc nothrow pure @safe unittest
+{
+    import std.math : approxEqual;
+    auto m = scaleX!(float, 4)(2.0f);
+    assert(approxEqual(m[0, 0], 2.0f));
+    assert(approxEqual(m[1, 1], 1.0f));
+    assert(approxEqual(m[2, 2], 1.0f));
+    assert(approxEqual(m[3, 3], 1.0f));
+}
+
