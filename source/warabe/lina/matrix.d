@@ -158,7 +158,43 @@ auto identity(E, size_t D)()
 }
 
 /**
-to scale X axis matrix.
+to scale matrix.
+
+Params:
+    E = element type.
+    D = row and column count.
+    m = target matrix.
+    axis = axis dimension.
+    scale = scale factor.
+Returns:
+    identity matrix.
+*/
+@nogc nothrow pure @safe
+ref auto scale(E, size_t D)(auto ref return Matrix!(E, D, D) m, size_t axis, E scale)
+in
+{
+    assert(axis < D);
+}
+body
+{
+    m.identity();
+    m[axis, axis] = scale;
+    return m;
+}
+
+///
+@nogc nothrow pure @safe unittest
+{
+    import std.math : approxEqual;
+    auto m = Matrix!(float, 4, 4)().scale(0, 2.0f);
+    assert(approxEqual(m[0, 0], 2.0f));
+    assert(approxEqual(m[1, 1], 1.0f));
+    assert(approxEqual(m[2, 2], 1.0f));
+    assert(approxEqual(m[3, 3], 1.0f));
+}
+
+/**
+to scaling X axis matrix.
 
 Params:
     E = element type.
@@ -166,14 +202,12 @@ Params:
     m = target matrix.
     scale = scale factor.
 Returns:
-    identity matrix.
+    scaling X axis matrix.
 */
 @nogc nothrow pure @safe
 ref auto scaleX(E, size_t D)(auto ref return Matrix!(E, D, D) m, E scale)
 {
-    m.identity();
-    m[0, 0] = scale;
-    return m;
+    return m.scale!(E, D)(0, scale);
 }
 
 ///
@@ -188,7 +222,7 @@ ref auto scaleX(E, size_t D)(auto ref return Matrix!(E, D, D) m, E scale)
 }
 
 /**
-create scale X axis matrix.
+create scaling X axis matrix.
 
 Params:
     E = element type.
@@ -196,13 +230,12 @@ Params:
     m = target matrix.
     scale = scale factor.
 Returns:
-    identity matrix.
+    scaling X axis matrix.
 */
 @nogc nothrow pure @safe
-ref auto scaleX(E, size_t D)(E scale)
+auto scaleX(E, size_t D)(E scale)
 {
-    auto m = identity!(E, D);
-    return m.scaleX(scale);
+    return identity!(E, D).scaleX(scale);
 }
 
 ///
@@ -212,6 +245,62 @@ ref auto scaleX(E, size_t D)(E scale)
     auto m = scaleX!(float, 4)(2.0f);
     assert(approxEqual(m[0, 0], 2.0f));
     assert(approxEqual(m[1, 1], 1.0f));
+    assert(approxEqual(m[2, 2], 1.0f));
+    assert(approxEqual(m[3, 3], 1.0f));
+}
+
+/**
+to scaling Y  axis matrix.
+
+Params:
+    E = element type.
+    D = row and column count.
+    m = target matrix.
+    scale = scale factor.
+Returns:
+    scaling Y axis matrix.
+*/
+@nogc nothrow pure @safe
+ref auto scaleY(E, size_t D)(auto ref return Matrix!(E, D, D) m, E scale)
+{
+    return m.scale!(E, D)(1, scale);
+}
+
+///
+@nogc nothrow pure @safe unittest
+{
+    import std.math : approxEqual;
+    auto m = Matrix!(float, 4, 4)().scaleY(2.0f);
+    assert(approxEqual(m[0, 0], 1.0f));
+    assert(approxEqual(m[1, 1], 2.0f));
+    assert(approxEqual(m[2, 2], 1.0f));
+    assert(approxEqual(m[3, 3], 1.0f));
+}
+
+/**
+create scaling Y axis matrix.
+
+Params:
+    E = element type.
+    D = row and column count.
+    m = target matrix.
+    scale = scale factor.
+Returns:
+    scaling Y axis matrix.
+*/
+@nogc nothrow pure @safe
+auto scaleY(E, size_t D)(E scale)
+{
+    return identity!(E, D).scaleY(scale);
+}
+
+///
+@nogc nothrow pure @safe unittest
+{
+    import std.math : approxEqual;
+    auto m = scaleY!(float, 4)(2.0f);
+    assert(approxEqual(m[0, 0], 1.0f));
+    assert(approxEqual(m[1, 1], 2.0f));
     assert(approxEqual(m[2, 2], 1.0f));
     assert(approxEqual(m[3, 3], 1.0f));
 }
