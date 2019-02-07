@@ -236,7 +236,6 @@ create scaling X axis matrix.
 Params:
     E = element type.
     D = row and column count.
-    m = target matrix.
     scale = scale factor.
 Returns:
     scaling X axis matrix.
@@ -292,7 +291,6 @@ create scaling Y axis matrix.
 Params:
     E = element type.
     D = row and column count.
-    m = target matrix.
     scale = scale factor.
 Returns:
     scaling Y axis matrix.
@@ -348,7 +346,6 @@ create scaling Z axis matrix.
 Params:
     E = element type.
     D = row and column count.
-    m = target matrix.
     scale = scale factor.
 Returns:
     scaling Z axis matrix.
@@ -367,6 +364,240 @@ auto scaleZ(E, size_t D)(E scale)
     assert(approxEqual(m[0, 0], 1.0f));
     assert(approxEqual(m[1, 1], 1.0f));
     assert(approxEqual(m[2, 2], 2.0f));
+    assert(approxEqual(m[3, 3], 1.0f));
+}
+
+/**
+to move matrix.
+
+Params:
+    E = element type.
+    D = row and column count.
+    m = target matrix.
+    dists = move distances..
+Returns:
+    identity matrix.
+*/
+@nogc nothrow pure @safe
+ref auto move(E, size_t D, DS...)(auto ref return Matrix!(E, D, D) m, DS dists)
+{
+    static assert(D > 1 && DS.length < D);
+    m.identity();
+    static foreach (i, dist; dists)
+    {
+        m[i, D - 1] = cast(E) dist;
+    }
+    return m;
+}
+
+///
+@nogc nothrow pure @safe unittest
+{
+    import std.math : approxEqual;
+    auto m = Matrix!(float, 4, 4)().move(2.0f);
+    assert(approxEqual(m[0, 3], 2.0f));
+    assert(approxEqual(m[1, 3], 0.0f));
+    assert(approxEqual(m[2, 3], 0.0f));
+    assert(approxEqual(m[0, 0], 1.0f));
+    assert(approxEqual(m[1, 1], 1.0f));
+    assert(approxEqual(m[2, 2], 1.0f));
+    assert(approxEqual(m[3, 3], 1.0f));
+}
+
+///
+@nogc nothrow pure @safe unittest
+{
+    import std.math : approxEqual;
+    auto m = Matrix!(float, 4, 4)().move(2.0f, 3.0f, 4.0f);
+    assert(approxEqual(m[0, 3], 2.0f));
+    assert(approxEqual(m[1, 3], 3.0f));
+    assert(approxEqual(m[2, 3], 4.0f));
+    assert(approxEqual(m[0, 0], 1.0f));
+    assert(approxEqual(m[1, 1], 1.0f));
+    assert(approxEqual(m[2, 2], 1.0f));
+    assert(approxEqual(m[3, 3], 1.0f));
+}
+
+/**
+to move X axis matrix.
+
+Params:
+    E = element type.
+    D = row and column count.
+    m = target matrix.
+    dist = move distance.
+Returns:
+    moving X axis matrix.
+*/
+@nogc nothrow pure @safe
+ref auto moveX(E, size_t D)(auto ref return Matrix!(E, D, D) m, E dist)
+{
+    return m.move!(E, D)(dist);
+}
+
+///
+@nogc nothrow pure @safe unittest
+{
+    import std.math : approxEqual;
+    auto m = Matrix!(float, 4, 4)().moveX(2.0f);
+    assert(approxEqual(m[0, 3], 2.0f));
+    assert(approxEqual(m[1, 3], 0.0f));
+    assert(approxEqual(m[2, 3], 0.0f));
+    assert(approxEqual(m[0, 0], 1.0f));
+    assert(approxEqual(m[1, 1], 1.0f));
+    assert(approxEqual(m[2, 2], 1.0f));
+    assert(approxEqual(m[3, 3], 1.0f));
+}
+
+/**
+create moving X axis matrix.
+
+Params:
+    E = element type.
+    D = row and column count.
+    dist = moving distance..
+Returns:
+    moving X axis matrix.
+*/
+@nogc nothrow pure @safe
+auto moveX(E, size_t D)(E dist)
+{
+    return identity!(E, D).moveX(dist);
+}
+
+///
+@nogc nothrow pure @safe unittest
+{
+    import std.math : approxEqual;
+    auto m = moveX!(float, 4)(2.0f);
+    assert(approxEqual(m[0, 3], 2.0f));
+    assert(approxEqual(m[1, 3], 0.0f));
+    assert(approxEqual(m[2, 3], 0.0f));
+    assert(approxEqual(m[0, 0], 1.0f));
+    assert(approxEqual(m[1, 1], 1.0f));
+    assert(approxEqual(m[2, 2], 1.0f));
+    assert(approxEqual(m[3, 3], 1.0f));
+}
+
+/**
+to move Y axis matrix.
+
+Params:
+    E = element type.
+    D = row and column count.
+    m = target matrix.
+    dist = move distance.
+Returns:
+    moving Y axis matrix.
+*/
+@nogc nothrow pure @safe
+ref auto moveY(E, size_t D)(auto ref return Matrix!(E, D, D) m, E dist)
+{
+    return m.move!(E, D)(0, dist);
+}
+
+///
+@nogc nothrow pure @safe unittest
+{
+    import std.math : approxEqual;
+    auto m = Matrix!(float, 4, 4)().moveY(2.0f);
+    assert(approxEqual(m[0, 3], 0.0f));
+    assert(approxEqual(m[1, 3], 2.0f));
+    assert(approxEqual(m[2, 3], 0.0f));
+    assert(approxEqual(m[0, 0], 1.0f));
+    assert(approxEqual(m[1, 1], 1.0f));
+    assert(approxEqual(m[2, 2], 1.0f));
+    assert(approxEqual(m[3, 3], 1.0f));
+}
+
+/**
+create moving Y axis matrix.
+
+Params:
+    E = element type.
+    D = row and column count.
+    dist = moving distance..
+Returns:
+    moving Y axis matrix.
+*/
+@nogc nothrow pure @safe
+auto moveY(E, size_t D)(E dist)
+{
+    return identity!(E, D).moveY(dist);
+}
+
+///
+@nogc nothrow pure @safe unittest
+{
+    import std.math : approxEqual;
+    auto m = moveY!(float, 4)(2.0f);
+    assert(approxEqual(m[0, 3], 0.0f));
+    assert(approxEqual(m[1, 3], 2.0f));
+    assert(approxEqual(m[2, 3], 0.0f));
+    assert(approxEqual(m[0, 0], 1.0f));
+    assert(approxEqual(m[1, 1], 1.0f));
+    assert(approxEqual(m[2, 2], 1.0f));
+    assert(approxEqual(m[3, 3], 1.0f));
+}
+
+/**
+to move Z axis matrix.
+
+Params:
+    E = element type.
+    D = row and column count.
+    m = target matrix.
+    dist = move distance.
+Returns:
+    moving Z axis matrix.
+*/
+@nogc nothrow pure @safe
+ref auto moveZ(E, size_t D)(auto ref return Matrix!(E, D, D) m, E dist)
+{
+    return m.move!(E, D)(0, 0, dist);
+}
+
+///
+@nogc nothrow pure @safe unittest
+{
+    import std.math : approxEqual;
+    auto m = Matrix!(float, 4, 4)().moveZ(2.0f);
+    assert(approxEqual(m[0, 3], 0.0f));
+    assert(approxEqual(m[1, 3], 0.0f));
+    assert(approxEqual(m[2, 3], 2.0f));
+    assert(approxEqual(m[0, 0], 1.0f));
+    assert(approxEqual(m[1, 1], 1.0f));
+    assert(approxEqual(m[2, 2], 1.0f));
+    assert(approxEqual(m[3, 3], 1.0f));
+}
+
+/**
+create moving Z axis matrix.
+
+Params:
+    E = element type.
+    D = row and column count.
+    dist = moving distance..
+Returns:
+    moving Z axis matrix.
+*/
+@nogc nothrow pure @safe
+auto moveZ(E, size_t D)(E dist)
+{
+    return identity!(E, D).moveZ(dist);
+}
+
+///
+@nogc nothrow pure @safe unittest
+{
+    import std.math : approxEqual;
+    auto m = moveZ!(float, 4)(2.0f);
+    assert(approxEqual(m[0, 3], 0.0f));
+    assert(approxEqual(m[1, 3], 0.0f));
+    assert(approxEqual(m[2, 3], 2.0f));
+    assert(approxEqual(m[0, 0], 1.0f));
+    assert(approxEqual(m[1, 1], 1.0f));
+    assert(approxEqual(m[2, 2], 1.0f));
     assert(approxEqual(m[3, 3], 1.0f));
 }
 
