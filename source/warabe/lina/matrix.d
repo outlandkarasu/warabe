@@ -301,7 +301,7 @@ ref auto scale(E, size_t D, S...)(auto ref return Matrix!(E, D, D) m, S scales)
 {
     static assert(D > 1 && S.length < D);
     m.identity();
-    static foreach (i, scale; scales)
+    foreach (i, scale; scales)
     {
         m[i, i] = cast(E) scale;
     }
@@ -523,7 +523,7 @@ ref auto move(E, size_t D, DS...)(auto ref return Matrix!(E, D, D) m, DS dists)
 {
     static assert(D > 1 && DS.length < D);
     m.identity();
-    static foreach (i, dist; dists)
+    foreach (i, dist; dists)
     {
         m[i, D - 1] = cast(E) dist;
     }
