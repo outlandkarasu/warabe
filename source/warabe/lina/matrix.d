@@ -155,7 +155,39 @@ struct Matrix(E, size_t R, size_t C)
             assert(approxEqual(result[0], v[0] * m[0, 0] + v[1] * m[1, 0]));
             assert(approxEqual(result[1], v[0] * m[0, 1] + v[1] * m[1, 1]));
         }
+    }
 
+    /**
+    return internal pointer.
+    for low layer operation only.
+
+    Returns:
+        internal pointer.
+    */
+    @nogc nothrow pure const(E)* ptr() const
+    out(result)
+    {
+        assert(result !is null);
+    }
+    body
+    {
+        return elements_[0].ptr;
+    }
+
+    ///
+    nothrow @nogc pure unittest
+    {
+        auto m = Matrix!(int, 2, 2)();
+        m[0, 0] = 1;
+        m[0, 1] = 2;
+        m[1, 0] = 3;
+        m[1, 1] = 4;
+
+        const p = m.ptr;
+        assert(p[0] == 1);
+        assert(p[1] == 3);
+        assert(p[2] == 2);
+        assert(p[3] == 4);
     }
 
     @safe string toString() const
@@ -163,16 +195,16 @@ struct Matrix(E, size_t R, size_t C)
         return elements_.to!string;
     }
 
+    ///
+    @safe unittest
+    {
+        auto m = Matrix!(int, 2, 2)();
+        assert(m.toString == "[[0, 0], [0, 0]]", m.toString);
+    }
+
 private:
 
     E[ROWS][COLUMNS] elements_;
-}
-
-///
-@safe unittest
-{
-    auto m = Matrix!(int, 2, 2)();
-    assert(m.toString == "[[0, 0], [0, 0]]", m.toString);
 }
 
 ///

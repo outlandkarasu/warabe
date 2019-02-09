@@ -65,23 +65,50 @@ struct Vector(E, size_t D)
         }
     }
 
+    /**
+    return internal pointer.
+    for low layer operation only.
+
+    Returns:
+        internal pointer.
+    */
+    @nogc nothrow pure const(E)* ptr() const
+    out(result)
+    {
+        assert(result !is null);
+    }
+    body
+    {
+        return elements_.ptr;
+    }
+
+    ///
+    nothrow @nogc pure unittest
+    {
+        immutable v = Vector!(int, 2)([1, 2]);
+
+        const p = v.ptr;
+        assert(p[0] == 1);
+        assert(p[1] == 2);
+    }
+
     @safe string toString() const
     {
         return elements_.to!string;
     }
 
+    ///
+    @safe unittest
+    {
+        auto m = Vector!(int, 2)();
+        assert(m.toString == "[0, 0]", m.toString);
+    }
 
 private:
 
     E[D] elements_;
 }
 
-///
-@safe unittest
-{
-    auto m = Vector!(int, 2)();
-    assert(m.toString == "[0, 0]", m.toString);
-}
 
 ///
 @safe unittest
