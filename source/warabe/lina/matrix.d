@@ -510,6 +510,13 @@ ref auto move(E, size_t D, DS...)(auto ref return Matrix!(E, D, D) m, DS dists)
     assert(approxEqual(m[1, 1], 1.0f));
     assert(approxEqual(m[2, 2], 1.0f));
     assert(approxEqual(m[3, 3], 1.0f));
+
+    immutable v = Vector!(float, 4)([1.0f, 1.0f, 1.0f, 1.0f]);
+    immutable resultRight = m * v; 
+    assert(approxEqual(resultRight[0], 3.0f));
+    assert(approxEqual(resultRight[1], 1.0f));
+    assert(approxEqual(resultRight[2], 1.0f));
+    assert(approxEqual(resultRight[3], 1.0f));
 }
 
 ///
@@ -524,6 +531,13 @@ ref auto move(E, size_t D, DS...)(auto ref return Matrix!(E, D, D) m, DS dists)
     assert(approxEqual(m[1, 1], 1.0f));
     assert(approxEqual(m[2, 2], 1.0f));
     assert(approxEqual(m[3, 3], 1.0f));
+
+    immutable v = Vector!(float, 4)([1.0f, 1.0f, 1.0f, 1.0f]);
+    immutable resultRight = m * v; 
+    assert(approxEqual(resultRight[0], 3.0f));
+    assert(approxEqual(resultRight[1], 4.0f));
+    assert(approxEqual(resultRight[2], 5.0f));
+    assert(approxEqual(resultRight[3], 1.0f));
 }
 
 /**
