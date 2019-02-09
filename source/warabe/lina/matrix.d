@@ -216,6 +216,14 @@ ref auto identity(E, size_t D)(auto ref return Matrix!(E, D, D) m)
     assert(approxEqual(m[1, 0], 0.0f));
     assert(approxEqual(m[0, 1], 0.0f));
     assert(approxEqual(m[1, 1], 1.0f));
+
+    immutable v = Vector!(float, 2)([1.0f, 1.0f]);
+    immutable leftResult = v * m;
+    assert(approxEqual(leftResult[0], 1.0f));
+    assert(approxEqual(leftResult[1], 1.0f));
+    immutable rightResult = m * v;
+    assert(approxEqual(rightResult[0], 1.0f));
+    assert(approxEqual(rightResult[1], 1.0f));
 }
 
 /**
@@ -272,11 +280,23 @@ ref auto scale(E, size_t D, S...)(auto ref return Matrix!(E, D, D) m, S scales)
 @nogc nothrow pure @safe unittest
 {
     import std.math : approxEqual;
-    auto m = Matrix!(float, 4, 4)().scale(2.0f);
+    auto m = Matrix!(float, 4, 4)().scale(2.0f, 3.0f, 4.0f);
     assert(approxEqual(m[0, 0], 2.0f));
-    assert(approxEqual(m[1, 1], 1.0f));
-    assert(approxEqual(m[2, 2], 1.0f));
+    assert(approxEqual(m[1, 1], 3.0f));
+    assert(approxEqual(m[2, 2], 4.0f));
     assert(approxEqual(m[3, 3], 1.0f));
+
+    immutable v = Vector!(float, 4)([1.0f, 1.0f, 1.0f, 1.0f]);
+    immutable leftResult = v * m;
+    assert(approxEqual(leftResult[0], 2.0f));
+    assert(approxEqual(leftResult[1], 3.0f));
+    assert(approxEqual(leftResult[2], 4.0f));
+    assert(approxEqual(leftResult[3], 1.0f));
+    immutable rightResult = m * v;
+    assert(approxEqual(rightResult[0], 2.0f));
+    assert(approxEqual(rightResult[1], 3.0f));
+    assert(approxEqual(rightResult[2], 4.0f));
+    assert(approxEqual(rightResult[3], 1.0f));
 }
 
 ///
