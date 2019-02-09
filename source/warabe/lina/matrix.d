@@ -86,7 +86,6 @@ private:
     assert(m.toString == "[[0, 0], [0, 0]]", m.toString);
 }
 
-
 ///
 @safe unittest
 {
