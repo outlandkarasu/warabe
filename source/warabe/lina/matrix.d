@@ -3,6 +3,8 @@ module warabe.lina.matrix;
 import std.conv : to;
 import std.traits : isNumeric;
 
+import warabe.lina.vector : Vector;
+
 /**
 column major matrix structure.
 
@@ -66,6 +68,49 @@ struct Matrix(E, size_t R, size_t C)
             assert(m[1, 0] == 999);
             assert(m[0, 1] == 999);
             assert(m[1, 1] == 999);
+        }
+
+        /**
+        apply matrix to column vector.
+        result = M * v;
+
+        Params:
+            v = target vector.
+        Returns:
+            result vector.
+        */
+        Vector!(E, R) opBinary(string op)(auto ref const Vector!(E, C) v) const
+        if (op == "*")
+        {
+            Vector!(E, R) result = void;
+            foreach (r; 0 .. R)
+            {
+                auto value = cast(E) 0;
+                foreach (c; 0 .. C)
+                {
+                    value += this[r, c] * v[c];
+                }
+                result[r] = value;
+            }
+            return result;
+        }
+
+        ///
+        unittest
+        {
+            auto m = Matrix!(float, 2, 2)();
+            m[0, 0] = 1.0f;
+            m[0, 1] = 2.0f;
+            m[1, 0] = 3.0f;
+            m[1, 1] = 4.0f;
+            auto v = Vector!(float, 2)();
+            v[0] = 1.0f;
+            v[1] = 2.0f;
+            immutable result = m * v;
+
+            import std.math : approxEqual;
+            assert(approxEqual(result[0], m[0, 0] * v[0] + m[0, 1] * v[1]));
+            assert(approxEqual(result[1], m[1, 0] * v[0] + m[1, 1] * v[1]));
         }
     }
 
