@@ -229,7 +229,7 @@ Returns:
     identity matrix.
 */
 @nogc nothrow pure @safe
-ref auto identity(E, size_t D)(auto ref return Matrix!(E, D, D) m)
+ref auto identity(E, size_t D)(auto ref Matrix!(E, D, D) m)
 {
     m.fill(cast(E) 0);
     for (size_t i = 0; i < D; ++i)
@@ -297,7 +297,7 @@ Returns:
     identity matrix.
 */
 @nogc nothrow pure @safe
-ref auto scale(E, size_t D, S...)(auto ref return Matrix!(E, D, D) m, S scales)
+ref auto scale(E, size_t D, S...)(auto ref Matrix!(E, D, D) m, S scales)
 {
     static assert(D > 1 && S.length < D);
     m.identity();
@@ -354,7 +354,7 @@ Returns:
     scaling X axis matrix.
 */
 @nogc nothrow pure @safe
-ref auto scaleX(E, size_t D)(auto ref return Matrix!(E, D, D) m, E scale)
+ref auto scaleX(E, size_t D)(auto ref Matrix!(E, D, D) m, E scale)
 {
     return m.scale!(E, D)(scale);
 }
@@ -409,7 +409,7 @@ Returns:
     scaling Y axis matrix.
 */
 @nogc nothrow pure @safe
-ref auto scaleY(E, size_t D)(auto ref return Matrix!(E, D, D) m, E scale)
+ref auto scaleY(E, size_t D)(auto ref Matrix!(E, D, D) m, E scale)
 {
     return m.scale!(E, D)(1, scale);
 }
@@ -464,7 +464,7 @@ Returns:
     scaling Z axis matrix.
 */
 @nogc nothrow pure @safe
-ref auto scaleZ(E, size_t D)(auto ref return Matrix!(E, D, D) m, E scale)
+ref auto scaleZ(E, size_t D)(auto ref Matrix!(E, D, D) m, E scale)
 {
     return m.scale!(E, D)(1, 1, scale);
 }
@@ -519,7 +519,7 @@ Returns:
     identity matrix.
 */
 @nogc nothrow pure @safe
-ref auto move(E, size_t D, DS...)(auto ref return Matrix!(E, D, D) m, DS dists)
+ref auto move(E, size_t D, DS...)(auto ref Matrix!(E, D, D) m, DS dists)
 {
     static assert(D > 1 && DS.length < D);
     m.identity();
@@ -584,7 +584,7 @@ Returns:
     moving X axis matrix.
 */
 @nogc nothrow pure @safe
-ref auto moveX(E, size_t D)(auto ref return Matrix!(E, D, D) m, E dist)
+ref auto moveX(E, size_t D)(auto ref Matrix!(E, D, D) m, E dist)
 {
     return m.move!(E, D)(dist);
 }
@@ -645,7 +645,7 @@ Returns:
     moving Y axis matrix.
 */
 @nogc nothrow pure @safe
-ref auto moveY(E, size_t D)(auto ref return Matrix!(E, D, D) m, E dist)
+ref auto moveY(E, size_t D)(auto ref Matrix!(E, D, D) m, E dist)
 {
     return m.move!(E, D)(0, dist);
 }
@@ -706,7 +706,7 @@ Returns:
     moving Z axis matrix.
 */
 @nogc nothrow pure @safe
-ref auto moveZ(E, size_t D)(auto ref return Matrix!(E, D, D) m, E dist)
+ref auto moveZ(E, size_t D)(auto ref Matrix!(E, D, D) m, E dist)
 {
     return m.move!(E, D)(0, 0, dist);
 }
