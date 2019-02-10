@@ -229,6 +229,38 @@ struct Matrix(E, size_t R, size_t C)
             assert(m[1, 0] == lhs[1, 0] * rhs[0, 0]); 
             assert(m[1, 1] == lhs[1, 0] * rhs[0, 1]); 
         }
+
+        /**
+        product two matrix.
+        result = this rhs;
+
+        Params:
+            rhs = right hand side matrix.
+        Returns:
+            two matrix product.
+        */
+        Matrix!(E, R, COL) product(size_t COL)(scope auto ref const Matrix!(E, C, COL) rhs) const
+        {
+            Matrix!(E, R, COL) result = void;
+            return result.productAssign(this, rhs);
+        }
+
+        ///
+        unittest
+        {
+            auto lhs = Matrix!(int, 2, 1)();
+            lhs[0, 0] = 2;
+            lhs[1, 0] = 3;
+            auto rhs = Matrix!(int, 1, 2)();
+            rhs[0, 0] = 4;
+            rhs[0, 1] = 5;
+
+            auto m = lhs.product(rhs);
+            assert(m[0, 0] == lhs[0, 0] * rhs[0, 0]); 
+            assert(m[0, 1] == lhs[0, 0] * rhs[0, 1]); 
+            assert(m[1, 0] == lhs[1, 0] * rhs[0, 0]); 
+            assert(m[1, 1] == lhs[1, 0] * rhs[0, 1]); 
+        }
     }
 
     /**
