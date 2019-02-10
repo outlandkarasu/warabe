@@ -861,3 +861,36 @@ auto moveZ(E, size_t D)(E dist)
     assert(approxEqual(m[3, 3], 1.0f));
 }
 
+@nogc nothrow pure @safe unittest
+{
+    immutable scale = Matrix!(float, 4, 4)().scale(2.0f, 3.0f, 4.0f);
+    immutable move = Matrix!(float, 4, 4)().move(0.5f, -0.5f, 1.0f);
+    immutable v = Vector!(float, 4)([1.0f, 1.0f, 1.0f, 1.0f]);
+
+    immutable scaled = scale * v;
+
+    import std.math : approxEqual;
+    assert(approxEqual(scaled[0], 2.0f));
+    assert(approxEqual(scaled[1], 3.0f));
+    assert(approxEqual(scaled[2], 4.0f));
+    assert(approxEqual(scaled[3], 1.0f));
+
+    immutable moved = move * v;
+    assert(approxEqual(moved[0], 1.5f));
+    assert(approxEqual(moved[1], 0.5f));
+    assert(approxEqual(moved[2], 2.0f));
+    assert(approxEqual(moved[3], 1.0f));
+
+    immutable scaleAndMove = scale.product(move) * v;
+    assert(approxEqual(scaleAndMove[0], 1.5f * 2.0f));
+    assert(approxEqual(scaleAndMove[1], 0.5f * 3.0f));
+    assert(approxEqual(scaleAndMove[2], 2.0f * 4.0f));
+    assert(approxEqual(scaleAndMove[3], 1.0f));
+
+    immutable moveAndScale = move.product(scale) * v;
+    assert(approxEqual(moveAndScale[0], 2.0f + 0.5f));
+    assert(approxEqual(moveAndScale[1], 3.0f - 0.5f));
+    assert(approxEqual(moveAndScale[2], 4.0f + 1.0f));
+    assert(approxEqual(moveAndScale[3], 1.0f));
+}
+
