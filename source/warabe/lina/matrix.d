@@ -1,5 +1,6 @@
 module warabe.lina.matrix;
 
+import std.algorithm : min;
 import std.conv : to;
 import std.traits : isNumeric;
 
@@ -26,8 +27,37 @@ struct Matrix(E, size_t R, size_t C)
         COLUMNS = C,
     }
 
+    /**
+    initialize matrix by values.
+
+    Params:
+        values = matrix elements values.
+    */
+    this(scope const(E)[][] values)
+    body
+    {
+        foreach (r, row; values[0 .. min(R, $)])
+        {
+            foreach (c, value; row[0 .. min(C, $)])
+            {
+                elements_[c][r] = value;
+            }
+        }
+    }
+
+    ///
+    @safe unittest
+    {
+        immutable m = Matrix!(int, 2, 2)([[1, 2], [3, 4]]);
+        assert(m[0, 0] == 1);
+        assert(m[0, 1] == 2);
+        assert(m[1, 0] == 3);
+        assert(m[1, 1] == 4);
+    }
+
     @nogc nothrow pure @safe
     {
+
         ref const(E) opIndex(size_t row, size_t col) const
         in
         {
@@ -79,7 +109,7 @@ struct Matrix(E, size_t R, size_t C)
         Returns:
             result vector.
         */
-        Vector!(E, R) opBinary(string op)(auto ref const Vector!(E, C) v) const
+        Vector!(E, R) opBinary(string op)(scope auto ref const Vector!(E, C) v) const
         if (op == "*")
         {
             Vector!(E, R) result = void;
@@ -122,7 +152,7 @@ struct Matrix(E, size_t R, size_t C)
         Returns:
             result vector.
         */
-        Vector!(E, C) opBinaryRight(string op)(auto ref const Vector!(E, R) v) const
+        Vector!(E, C) opBinaryRight(string op)(scope auto ref const Vector!(E, R) v) const
         if (op == "*")
         {
             Vector!(E, C) result = void;
@@ -154,6 +184,82 @@ struct Matrix(E, size_t R, size_t C)
             import std.math : approxEqual;
             assert(approxEqual(result[0], v[0] * m[0, 0] + v[1] * m[1, 0]));
             assert(approxEqual(result[1], v[0] * m[0, 1] + v[1] * m[1, 1]));
+        }
+
+        /**
+        assign product of two matrix.
+
+        Params:
+            lhs = left hand side matrix.
+            rhs = right hand side matrix.
+        */
+        ref typeof(this) productAssign(size_t COL)(
+                scope auto ref const(Matrix!(E, R, COL)) lhs,
+                scope auto ref const(Matrix!(E, COL, C)) rhs)
+        {
+            foreach (r; 0 .. R)
+            {
+                foreach (rc; 0 .. C)
+                {
+                    auto value = cast(E) 0;
+                    foreach (c; 0 .. COL)
+                    {
+                        value += lhs[r, c] * rhs[c, rc];
+                    }
+                    this[r, rc] = value;
+                }
+            }
+            return this;
+        }
+
+        ///
+        unittest
+        {
+            auto lhs = Matrix!(int, 2, 1)();
+            lhs[0, 0] = 2;
+            lhs[1, 0] = 3;
+            auto rhs = Matrix!(int, 1, 2)();
+            rhs[0, 0] = 4;
+            rhs[0, 1] = 5;
+
+            auto m = Matrix!(int, 2, 2)();
+            m.productAssign(lhs, rhs);
+            assert(m[0, 0] == lhs[0, 0] * rhs[0, 0]); 
+            assert(m[0, 1] == lhs[0, 0] * rhs[0, 1]); 
+            assert(m[1, 0] == lhs[1, 0] * rhs[0, 0]); 
+            assert(m[1, 1] == lhs[1, 0] * rhs[0, 1]); 
+        }
+
+        /**
+        product two matrix.
+        result = this rhs;
+
+        Params:
+            rhs = right hand side matrix.
+        Returns:
+            two matrix product.
+        */
+        Matrix!(E, R, COL) product(size_t COL)(scope auto ref const Matrix!(E, C, COL) rhs) const
+        {
+            Matrix!(E, R, COL) result = void;
+            return result.productAssign(this, rhs);
+        }
+
+        ///
+        unittest
+        {
+            auto lhs = Matrix!(int, 2, 1)();
+            lhs[0, 0] = 2;
+            lhs[1, 0] = 3;
+            auto rhs = Matrix!(int, 1, 2)();
+            rhs[0, 0] = 4;
+            rhs[0, 1] = 5;
+
+            auto m = lhs.product(rhs);
+            assert(m[0, 0] == lhs[0, 0] * rhs[0, 0]); 
+            assert(m[0, 1] == lhs[0, 0] * rhs[0, 1]); 
+            assert(m[1, 0] == lhs[1, 0] * rhs[0, 0]); 
+            assert(m[1, 1] == lhs[1, 0] * rhs[0, 1]); 
         }
     }
 
@@ -753,5 +859,38 @@ auto moveZ(E, size_t D)(E dist)
     assert(approxEqual(m[1, 1], 1.0f));
     assert(approxEqual(m[2, 2], 1.0f));
     assert(approxEqual(m[3, 3], 1.0f));
+}
+
+@nogc nothrow pure @safe unittest
+{
+    immutable scale = Matrix!(float, 4, 4)().scale(2.0f, 3.0f, 4.0f);
+    immutable move = Matrix!(float, 4, 4)().move(0.5f, -0.5f, 1.0f);
+    immutable v = Vector!(float, 4)([1.0f, 1.0f, 1.0f, 1.0f]);
+
+    immutable scaled = scale * v;
+
+    import std.math : approxEqual;
+    assert(approxEqual(scaled[0], 2.0f));
+    assert(approxEqual(scaled[1], 3.0f));
+    assert(approxEqual(scaled[2], 4.0f));
+    assert(approxEqual(scaled[3], 1.0f));
+
+    immutable moved = move * v;
+    assert(approxEqual(moved[0], 1.5f));
+    assert(approxEqual(moved[1], 0.5f));
+    assert(approxEqual(moved[2], 2.0f));
+    assert(approxEqual(moved[3], 1.0f));
+
+    immutable scaleAndMove = scale.product(move) * v;
+    assert(approxEqual(scaleAndMove[0], 1.5f * 2.0f));
+    assert(approxEqual(scaleAndMove[1], 0.5f * 3.0f));
+    assert(approxEqual(scaleAndMove[2], 2.0f * 4.0f));
+    assert(approxEqual(scaleAndMove[3], 1.0f));
+
+    immutable moveAndScale = move.product(scale) * v;
+    assert(approxEqual(moveAndScale[0], 2.0f + 0.5f));
+    assert(approxEqual(moveAndScale[1], 3.0f - 0.5f));
+    assert(approxEqual(moveAndScale[2], 4.0f + 1.0f));
+    assert(approxEqual(moveAndScale[3], 1.0f));
 }
 
