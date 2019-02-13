@@ -2,9 +2,11 @@ module warabe.renderer.rectangle;
 
 import warabe.color : Color;
 import warabe.coodinates : Rectangle;
+import warabe.lina.matrix : identity;
 import warabe.opengl :
     GLDrawMode,
     IndicesID,
+    Mat4,
     OpenGLContext,
     ShaderProgramID,
     UniformLocation,
@@ -25,6 +27,7 @@ class RectangleBufferEntry
         this.count_ = count;
         this.program_ = program;
         this.mvpLocation_ = context.getUniformLocation(program, MVP_UNIFORM_NAME);
+        this.mvp_.identity;
     }
 
     @nogc nothrow @property pure @safe bool hasCapacity() const
@@ -70,6 +73,8 @@ class RectangleBufferEntry
 
         context_.useProgram(program_);
         scope(exit) context_.unuseProgram();
+
+        context_.uniform(mvpLocation_, mvp_);
 
         context_.draw(GLDrawMode.triangles, 0, cast(uint) indicesEnd_);
     }
@@ -123,6 +128,7 @@ private:
     IndicesID indices_;
     ShaderProgramID program_;
     UniformLocation mvpLocation_;
+    Mat4 mvp_;
     size_t count_;
     size_t verticesEnd_;
     size_t indicesEnd_;

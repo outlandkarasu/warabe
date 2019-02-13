@@ -1,5 +1,6 @@
 module warabe.opengl.context;
 
+import warabe.lina.matrix : Matrix;
 import warabe.opengl.exception : checkGLError;
 import warabe.opengl.shader : createShaderProgram;
 
@@ -36,6 +37,7 @@ import bindbc.opengl :
     GLint,
     GLSupport,
     GLuint,
+    glUniformMatrix4fv,
     glUseProgram,
     glVertexAttribPointer,
     GLvoid;
@@ -58,6 +60,9 @@ alias VertexArrayID = Typedef!(GLuint, GLuint.init, "VertexArrayID");
 
 /// uniform location.
 alias UniformLocation = Typedef!(GLint, GLint.init, "UniformLocation");
+
+/// matrix type.
+alias Mat4 = Matrix!(float, 4, 4);
 
 /// vertex type predicate.
 enum isVertexType(T) = __traits(isPOD, T);
@@ -466,6 +471,15 @@ interface OpenGLContext
     UniformLocation getUniformLocation(ShaderProgramID program, const(char)[] name);
 
     /**
+    set an uniform variable.
+
+    Params:
+        location = uniform location.
+        m = matrix.
+    */
+    void uniform(UniformLocation location, scope ref const(Mat4) m);
+
+    /**
     Returns:
         OpenGL supported version.
     */
@@ -634,6 +648,12 @@ class OpenGLContextImpl : OpenGLContext
             immutable result = glGetUniformLocation(cast(GLuint) program, name.toStringz);
             checkGLError();
             return UniformLocation(result);
+        }
+
+        void uniform(UniformLocation location, scope ref const(Mat4) m)
+        {
+            glUniformMatrix4fv(cast(GLint) location, 1, false, m.ptr);
+            checkGLError();
         }
 
         @property GLSupport support() const @nogc nothrow pure @safe
