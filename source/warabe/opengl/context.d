@@ -32,6 +32,8 @@ import bindbc.opengl :
     GLenum,
     glGenBuffers,
     glGenVertexArrays,
+    glGetUniformLocation,
+    GLint,
     GLSupport,
     GLuint,
     glUseProgram,
@@ -40,6 +42,7 @@ import bindbc.opengl :
 
 import std.traits : isIntegral;
 import std.typecons : Typedef;
+import std.string : toStringz;
 
 /// vertex array buffer ID.
 alias VerticesID = Typedef!(GLuint, GLuint.init, "VerticesID");
@@ -53,6 +56,8 @@ alias ShaderProgramID = Typedef!(GLuint, GLuint.init, "ShaderProgramID");
 /// vertex array ID.
 alias VertexArrayID = Typedef!(GLuint, GLuint.init, "VertexArrayID");
 
+/// uniform location.
+alias UniformLocation = Typedef!(GLint, GLint.init, "UniformLocation");
 
 /// vertex type predicate.
 enum isVertexType(T) = __traits(isPOD, T);
@@ -450,6 +455,17 @@ interface OpenGLContext
     void unbindVAO();
 
     /**
+    get uniform location number.
+
+    Params:
+        program = program ID.
+        name = uniform variable name.
+    Returns:
+        uniform location.
+    */
+    UniformLocation getUniformLocation(ShaderProgramID program, const(char)[] name);
+
+    /**
     Returns:
         OpenGL supported version.
     */
@@ -611,6 +627,13 @@ class OpenGLContextImpl : OpenGLContext
         void unbindVAO()
         {
             glBindVertexArray(0);
+        }
+
+        UniformLocation getUniformLocation(ShaderProgramID program, const(char)[] name)
+        {
+            immutable result = glGetUniformLocation(cast(GLuint) program, name.toStringz);
+            checkGLError();
+            return UniformLocation(result);
         }
 
         @property GLSupport support() const @nogc nothrow pure @safe
