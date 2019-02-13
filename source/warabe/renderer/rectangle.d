@@ -7,6 +7,7 @@ import warabe.opengl :
     IndicesID,
     OpenGLContext,
     ShaderProgramID,
+    UniformLocation,
     VertexArrayID,
     VerticesID;
 
@@ -23,6 +24,7 @@ class RectangleBufferEntry
         this.vao_ = context.createVAO();
         this.count_ = count;
         this.program_ = program;
+        this.mvpLocation_ = context.getUniformLocation(program, MVP_UNIFORM_NAME);
     }
 
     @nogc nothrow @property pure @safe bool hasCapacity() const
@@ -85,6 +87,7 @@ private:
     {
         VERTICES_PER_RECT = 4,
         INDICES_PER_RECT = 6,
+        MVP_UNIFORM_NAME = "mvp",
     }
 
     struct Vertex
@@ -119,6 +122,7 @@ private:
     VerticesID vertices_;
     IndicesID indices_;
     ShaderProgramID program_;
+    UniformLocation mvpLocation_;
     size_t count_;
     size_t verticesEnd_;
     size_t indicesEnd_;
