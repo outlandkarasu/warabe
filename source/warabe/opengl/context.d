@@ -40,6 +40,7 @@ import bindbc.opengl :
     glUniformMatrix4fv,
     glUseProgram,
     glVertexAttribPointer,
+    glViewport,
     GLvoid;
 
 import std.traits : isIntegral;
@@ -480,6 +481,17 @@ interface OpenGLContext
     void uniform(UniformLocation location, scope ref const(Mat4) m);
 
     /**
+    set up OpenGL viewport.
+
+    Params:
+        x = lower left position x.
+        y = lower left position y.
+        width = viewport width.
+        height = viewport height.
+    */
+    void viewport(int x, int y, uint width, uint height);
+
+    /**
     Returns:
         OpenGL supported version.
     */
@@ -653,6 +665,12 @@ class OpenGLContextImpl : OpenGLContext
         void uniform(UniformLocation location, scope ref const(Mat4) m)
         {
             glUniformMatrix4fv(cast(GLint) location, 1, false, m.ptr);
+            checkGLError();
+        }
+
+        void viewport(int x, int y, uint width, uint height)
+        {
+            glViewport(x, y, width, height);
             checkGLError();
         }
 
