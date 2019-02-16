@@ -82,7 +82,7 @@ class App : Application
             context.bind(vertices_);
             context.vertexAttributes!(Vertex, float)(0, 3, 0);
             context.enableVertexAttributes(0);
-            context.vertexAttributes!(Vertex, ubyte)(1, 3, Vertex.color.offsetof, false);
+            context.vertexAttributes!(Vertex, ubyte)(1, 4, Vertex.color.offsetof, true);
             context.enableVertexAttributes(1);
             context.bind(indices_);
             context.unbindVAO();
@@ -101,13 +101,10 @@ class App : Application
         rectangles_.draw();
         +/
 
-        context.clearColor(0.0f, 0.0f, 0.0f, 0.0f);
-        context.clear(GLBufferBit.color | GLBufferBit.depth);
         context.useProgram(program_);
         context.bind(vao_);
         context.uniform(mvpLocation_, mvp_);
         context.draw!ushort(GLDrawMode.triangles, 3, 0);
-        context.flush();
     }
 
     mixin DefaultEventHandler;

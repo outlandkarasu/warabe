@@ -41,14 +41,13 @@ import bindbc.sdl :
     Uint32,
     unloadSDL;
 
-import bindbc.opengl : glDeleteProgram;
-
 import warabe.application :
     Application,
     ApplicationParameters,
     FrameCounter;
 
 import warabe.opengl :
+    GLBufferBit,
     OpenGLContext,
     OpenGLVersion,
     initializeOpenGL;
@@ -219,7 +218,10 @@ void mainLoop(
         }
 
         // render a frame.
+        openGLContext.clearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        openGLContext.clear(GLBufferBit.color | GLBufferBit.depth);
         application.render(openGLContext);
+        openGLContext.flush();
         SDL_GL_SwapWindow(window);
 
         immutable elapse = (SDL_GetPerformanceCounter() - start) * 1000.0f / frequency;
