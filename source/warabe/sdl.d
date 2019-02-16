@@ -187,6 +187,8 @@ void mainLoop(
         scope OpenGLContext openGLContext,
         scope Application application)
 {
+    openGLContext.viewport(0, 0, params.windowWidth, params.windowHeight);
+
     immutable frequency = SDL_GetPerformanceFrequency();
     immutable msPerFrame = 1000.0f / params.fps;
     FrameCounter frameCounter;

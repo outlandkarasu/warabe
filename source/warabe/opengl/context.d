@@ -526,7 +526,7 @@ class OpenGLContextImpl : OpenGLContext
 
         void copyRawDataTo(VerticesID id, ptrdiff_t offset, const(void)[] data)
         {
-            copyToBuffer(id, offset,data);
+            copyToBuffer(id, offset, data);
         }
 
         void deleteVertices(VerticesID id)
