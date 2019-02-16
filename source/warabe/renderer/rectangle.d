@@ -76,7 +76,7 @@ class RectangleBufferEntry
 
         context_.uniform(mvpLocation_, mvp_);
 
-        context_.draw(GLDrawMode.triangles, 0, cast(uint) indicesEnd_);
+        context_.draw!ushort(GLDrawMode.triangles, cast(uint) indicesEnd_, 0);
     }
 
     ~this()
