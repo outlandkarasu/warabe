@@ -92,7 +92,7 @@ private:
     {
         VERTICES_PER_RECT = 4,
         INDICES_PER_RECT = 6,
-        MVP_UNIFORM_NAME = "mvp",
+        MVP_UNIFORM_NAME = "MVP",
     }
 
     struct Vertex
