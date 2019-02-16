@@ -34,7 +34,8 @@ class App : Application
                 import("plane.vert"),
                 import("plane.frag"));
             rectangles_ = new RectangleBufferEntry(context, program_, 4);
-            rectangles_.add(Rectangle(0, 0, 5, 5), Color(255, 255, 255, 0));
+            rectangles_.add(Rectangle(5, 5, 100, 200), Color(255, 0, 0, 0));
+            rectangles_.add(Rectangle(10, 25, 10, 20), Color(0, 255, 0, 0));
         }
         rectangles_.draw();
     }

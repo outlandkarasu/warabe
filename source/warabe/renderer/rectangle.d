@@ -2,7 +2,11 @@ module warabe.renderer.rectangle;
 
 import warabe.color : Color;
 import warabe.coodinates : Rectangle;
-import warabe.lina.matrix : identity;
+
+import warabe.lina.matrix :
+    move,
+    scale;
+
 import warabe.opengl :
     GLDrawMode,
     IndicesID,
@@ -27,7 +31,10 @@ class RectangleBufferEntry
         this.count_ = count;
         this.program_ = program;
         this.mvpLocation_ = context.getUniformLocation(program, MVP_UNIFORM_NAME);
-        this.mvp_.identity;
+
+        immutable scale = Mat4().scale(2.0f / 800.0f, -2.0f / 600.0f);
+        immutable offset = Mat4().move(-1.0f, 1.0f);
+        this.mvp_.productAssign(offset, scale);
     }
 
     @nogc nothrow @property pure @safe bool hasCapacity() const
