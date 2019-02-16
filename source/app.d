@@ -87,7 +87,7 @@ class App : Application
             context.bind(indices_);
             context.unbindVAO();
             identity(mvp_);
-            mvpLocation_ = context.getUniformLocation(program_, "mvp");
+            mvpLocation_ = context.getUniformLocation(program_, "MVP");
         }
         /+
         if (rectangles_ is null)
