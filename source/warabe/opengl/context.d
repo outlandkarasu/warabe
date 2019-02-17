@@ -7,6 +7,8 @@ import warabe.opengl.shader : createShaderProgram;
 import bindbc.opengl :
     GL_ARRAY_BUFFER,
     GL_BYTE,
+    GL_COLOR_BUFFER_BIT,
+    GL_DEPTH_BUFFER_BIT,
     GL_ELEMENT_ARRAY_BUFFER,
     GL_FLOAT,
     GL_LINE_LOOP,
@@ -14,6 +16,7 @@ import bindbc.opengl :
     GL_LINES,
     GL_POINTS,
     GL_SHORT,
+    GL_STENCIL_BUFFER_BIT,
     GL_STREAM_DRAW,
     GL_TRIANGLE_STRIP,
     GL_TRIANGLE_FAN,
@@ -24,13 +27,16 @@ import bindbc.opengl :
     glBindVertexArray,
     glBufferData,
     glBufferSubData,
+    glClear,
+    glClearColor,
     glDeleteBuffers,
     glDeleteProgram,
     glDeleteVertexArrays,
     glDisableVertexAttribArray,
-    glDrawArrays,
+    glDrawElements,
     glEnableVertexAttribArray,
     GLenum,
+    glFlush,
     glGenBuffers,
     glGenVertexArrays,
     glGetUniformLocation,
@@ -40,6 +46,7 @@ import bindbc.opengl :
     glUniformMatrix4fv,
     glUseProgram,
     glVertexAttribPointer,
+    glViewport,
     GLvoid;
 
 import std.traits : isIntegral;
@@ -114,6 +121,14 @@ template GLTypeEnum(T)
     {
         static assert(false, T.stringof ~ " is not supported.");
     }
+}
+
+/// OpenGL buffer bit.
+enum GLBufferBit
+{
+    color = GL_COLOR_BUFFER_BIT,
+    depth = GL_DEPTH_BUFFER_BIT,
+    stencil = GL_STENCIL_BUFFER_BIT,
 }
 
 /// OpenGL draw mode.
@@ -389,14 +404,30 @@ interface OpenGLContext
     void disableVertexAttributes(uint index);
 
     /**
-    draw arrays.
+    draw elements.
+
+    Params:
+        T = index type.
+        mode = OpenGL draw mode.
+        count = indices count.
+        offset = indices offset.
+    */
+    void draw(T)(GLDrawMode mode, uint count, uint offset)
+    if (isIndexType!T)
+    {
+        draw(mode, count, GLTypeEnum!T, offset);
+    }
+
+    /**
+    draw elements.
 
     Params:
         mode = OpenGL draw mode.
-        first = indices first index.
+        type = index type.
         count = indices count.
+        offset = indices offset.
     */
-    void draw(GLDrawMode mode, uint first, uint count);
+    void draw(GLDrawMode mode, uint count, GLenum type, uint offset);
 
     /**
     create shader program.
@@ -480,6 +511,41 @@ interface OpenGLContext
     void uniform(UniformLocation location, scope ref const(Mat4) m);
 
     /**
+    set up OpenGL viewport.
+
+    Params:
+        x = lower left position x.
+        y = lower left position y.
+        width = viewport width.
+        height = viewport height.
+    */
+    void viewport(int x, int y, uint width, uint height);
+
+    /**
+    set clear color.
+
+    Params:
+        red = red value. [0.0, 1.0]
+        blue = blue value. [0.0, 1.0]
+        green = green value. [0.0, 1.0]
+        alpha = alpha value. [0.0, 1.0]
+    */
+    void clearColor(float red, float blue, float green, float alpha);
+
+    /**
+    clear buffer.
+
+    Params:
+        bits = clear buffer bits.
+    */
+    void clear(GLBufferBit bits);
+
+    /**
+    flush OpenGL state.
+    */
+    void flush();
+
+    /**
     Returns:
         OpenGL supported version.
     */
@@ -514,7 +580,7 @@ class OpenGLContextImpl : OpenGLContext
 
         void copyRawDataTo(VerticesID id, ptrdiff_t offset, const(void)[] data)
         {
-            copyToBuffer(id, offset,data);
+            copyToBuffer(id, offset, data);
         }
 
         void deleteVertices(VerticesID id)
@@ -587,9 +653,9 @@ class OpenGLContextImpl : OpenGLContext
             unbindBuffer!IndicesID();
         }
 
-        void draw(GLDrawMode mode, uint first, uint count)
+        void draw(GLDrawMode mode, uint count, GLenum type, uint offset)
         {
-            glDrawArrays(mode, first, count);
+            glDrawElements(mode, count, type, cast(const(GLvoid)*) offset);
             checkGLError();
         }
 
@@ -654,6 +720,29 @@ class OpenGLContextImpl : OpenGLContext
         {
             glUniformMatrix4fv(cast(GLint) location, 1, false, m.ptr);
             checkGLError();
+        }
+
+        void viewport(int x, int y, uint width, uint height)
+        {
+            glViewport(x, y, width, height);
+            checkGLError();
+        }
+
+        void clearColor(float red, float blue, float green, float alpha)
+        {
+            glClearColor(red, blue, green, alpha);
+            checkGLError();
+        }
+
+        void clear(GLBufferBit bits)
+        {
+            glClear(bits);
+            checkGLError();
+        }
+
+        void flush()
+        {
+            glFlush();
         }
 
         @property GLSupport support() const @nogc nothrow pure @safe

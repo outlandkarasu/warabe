@@ -22,6 +22,7 @@ import bindbc.sdl :
     SDL_GL_DeleteContext,
     SDL_GL_DOUBLEBUFFER,
     SDL_GL_SetAttribute,
+    SDL_GL_SwapWindow,
     SDL_Init,
     SDL_INIT_EVERYTHING,
     SDL_PollEvent,
@@ -32,6 +33,7 @@ import bindbc.sdl :
     SDL_TimerID,
     SDL_UserEvent,
     SDL_USEREVENT,
+    SDL_Window,
     SDL_WINDOW_SHOWN,
     SDL_WINDOW_OPENGL,
     SDLSupport,
@@ -39,14 +41,13 @@ import bindbc.sdl :
     Uint32,
     unloadSDL;
 
-import bindbc.opengl : glDeleteProgram;
-
 import warabe.application :
     Application,
     ApplicationParameters,
     FrameCounter;
 
 import warabe.opengl :
+    GLBufferBit,
     OpenGLContext,
     OpenGLVersion,
     initializeOpenGL;
@@ -112,7 +113,7 @@ void runSDL(ref const(ApplicationParameters) params, scope Application applicati
     auto timerID = createFPSCountTimer(FPS_COUNT_INTERVAL_MS);
     scope(exit) SDL_RemoveTimer(timerID);
 
-    mainLoop(params, openGLContext, application);
+    mainLoop(params, openGLContext, application, window);
 }
 
 private:
@@ -185,8 +186,11 @@ SDL_TimerID createFPSCountTimer(Uint32 intervalMillis)
 void mainLoop(
         ref const(ApplicationParameters) params,
         scope OpenGLContext openGLContext,
-        scope Application application)
+        scope Application application,
+        scope SDL_Window* window)
 {
+    openGLContext.viewport(0, 0, params.windowWidth, params.windowHeight);
+
     immutable frequency = SDL_GetPerformanceFrequency();
     immutable msPerFrame = 1000.0f / params.fps;
     FrameCounter frameCounter;
@@ -214,7 +218,11 @@ void mainLoop(
         }
 
         // render a frame.
+        openGLContext.clearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        openGLContext.clear(GLBufferBit.color | GLBufferBit.depth);
         application.render(openGLContext);
+        openGLContext.flush();
+        SDL_GL_SwapWindow(window);
 
         immutable elapse = (SDL_GetPerformanceCounter() - start) * 1000.0f / frequency;
         SDL_Delay((msPerFrame > elapse) ? cast(uint)(msPerFrame - elapse) : 0);

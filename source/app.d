@@ -10,7 +10,10 @@ import warabe.event :
     DefaultEventHandler,
     EventHandlerResult;
 
-import warabe.opengl : OpenGLContext, ShaderProgramID;
+import warabe.opengl :
+    OpenGLContext,
+    ShaderProgramID;
+
 import warabe.renderer : RectangleBufferEntry;
 
 import core.stdc.stdio : printf;
@@ -30,8 +33,10 @@ class App : Application
             program_ = context.createShaderProgram(
                 import("plane.vert"),
                 import("plane.frag"));
-            rectangles_ = new RectangleBufferEntry(context, program_, 1024);
-            rectangles_.add(Rectangle(0, 0, 100, 100), Color(255, 0, 0, 255));
+            rectangles_ = new RectangleBufferEntry(context, program_, 3);
+            rectangles_.add(Rectangle(5, 5, 100, 200), Color(255, 0, 0, 0));
+            rectangles_.add(Rectangle(10, 25, 10, 20), Color(0, 255, 0, 0));
+            rectangles_.add(Rectangle(13, 29, 20, 10), Color(0, 0, 255, 0));
         }
         rectangles_.draw();
     }
