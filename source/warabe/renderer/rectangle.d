@@ -20,15 +20,15 @@ import warabe.opengl :
 ///
 class RectangleBufferEntry
 {
-    this(OpenGLContext context, ShaderProgramID program, uint count)
+    this(OpenGLContext context, ShaderProgramID program, uint capacity)
     {
         this.context_ = context;
         this.vertices_ = context.createVertices!Vertex(
-            count * VERTICES_PER_RECT);
+            capacity * VERTICES_PER_RECT);
         this.indices_ = context.createIndices!ushort(
-            count * INDICES_PER_RECT);
+            capacity * INDICES_PER_RECT);
         this.vao_ = context.createVAO();
-        this.count_ = count;
+        this.capacity_ = capacity;
         this.program_ = program;
         this.mvpLocation_ = context.getUniformLocation(program, MVP_UNIFORM_NAME);
 
@@ -39,7 +39,7 @@ class RectangleBufferEntry
 
     @nogc nothrow @property pure @safe bool hasCapacity() const
     {
-        return verticesEnd_ < (count_ * VERTICES_PER_RECT);
+        return count_ < capacity_;
     }
 
     void add()(auto ref const(Rectangle) rect, auto ref const(Color) color)
@@ -49,6 +49,7 @@ class RectangleBufferEntry
     }
     body
     {
+        // append rect vertices.
         scope immutable(ubyte)[4] colorArray = [
             color.red, color.green, color.blue, color.alpha];
         scope immutable(Vertex)[VERTICES_PER_RECT] vertices = [
@@ -58,18 +59,21 @@ class RectangleBufferEntry
             { [rect.left, rect.bottom, 0.0f], colorArray },
         ];
         context_.copyTo(vertices_, verticesEnd_, vertices);
-        verticesEnd_ += VERTICES_PER_RECT;
 
+        // append rect indices.
         scope immutable(ushort)[INDICES_PER_RECT] indices = [
-            cast(ushort)(indicesEnd_),
-            cast(ushort)(indicesEnd_ + 1),
-            cast(ushort)(indicesEnd_ + 2),
-            cast(ushort)(indicesEnd_),
-            cast(ushort)(indicesEnd_ + 2),
-            cast(ushort)(indicesEnd_ + 3),
+            cast(ushort)(verticesEnd_),
+            cast(ushort)(verticesEnd_ + 1),
+            cast(ushort)(verticesEnd_ + 2),
+            cast(ushort)(verticesEnd_),
+            cast(ushort)(verticesEnd_ + 2),
+            cast(ushort)(verticesEnd_ + 3),
         ];
         context_.copyTo(indices_, indicesEnd_, indices);
+
+        verticesEnd_ += VERTICES_PER_RECT;
         indicesEnd_ += INDICES_PER_RECT;
+        ++count_;
     }
 
     void draw()
@@ -83,7 +87,10 @@ class RectangleBufferEntry
 
         context_.uniform(mvpLocation_, mvp_);
 
-        context_.draw!ushort(GLDrawMode.triangles, cast(uint) indicesEnd_, 0);
+        context_.draw!ushort(
+            GLDrawMode.triangles,
+            cast(uint) indicesEnd_,
+            0);
     }
 
     ~this()
@@ -136,6 +143,7 @@ private:
     ShaderProgramID program_;
     UniformLocation mvpLocation_;
     Mat4 mvp_;
+    size_t capacity_;
     size_t count_;
     size_t verticesEnd_;
     size_t indicesEnd_;
@@ -149,7 +157,12 @@ unittest
 
     scope context = new BlackHole!OpenGLContext;
 
-    scope buffer = new RectangleBufferEntry(context, ShaderProgramID(123), 1);
+    scope buffer = new RectangleBufferEntry(context, ShaderProgramID(123), 2);
+    assert(buffer.hasCapacity);
+
+    buffer.add(
+        Rectangle(10, 20, 100, 200),
+        Color(0xff, 0x80, 0x40, 0xff));
     assert(buffer.hasCapacity);
 
     buffer.add(
