@@ -22,6 +22,7 @@ import bindbc.sdl :
     SDL_GL_DeleteContext,
     SDL_GL_DOUBLEBUFFER,
     SDL_GL_SetAttribute,
+    SDL_GL_SetSwapInterval,
     SDL_GL_SwapWindow,
     SDL_Init,
     SDL_INIT_EVERYTHING,
@@ -94,6 +95,13 @@ void runSDL(ref const(ApplicationParameters) params, scope Application applicati
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, OpenGLVersion.minor);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+
+    // try adaptive vsync.
+    if (SDL_GL_SetSwapInterval(-1) == -1)
+    {
+        // fallback: normal vsync.
+        sdlEnforce(SDL_GL_SetSwapInterval(1));
+    }
 
     auto window = sdlEnforce(SDL_CreateWindow(
         toStringz(params.windowTitle),
