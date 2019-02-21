@@ -23,6 +23,7 @@ import bindbc.opengl :
     GL_TRIANGLES,
     GL_UNSIGNED_BYTE,
     GL_UNSIGNED_SHORT,
+    GL_VIEWPORT,
     glBindBuffer,
     glBindVertexArray,
     glBufferData,
@@ -38,6 +39,7 @@ import bindbc.opengl :
     GLenum,
     glFlush,
     glGenBuffers,
+    glGetFloatv,
     glGenVertexArrays,
     glGetUniformLocation,
     GLint,
@@ -150,6 +152,20 @@ enum GLDrawMode
     static assert(GLTypeEnum!short == GL_SHORT);
     static assert(GLTypeEnum!ushort == GL_UNSIGNED_SHORT);
     static assert(GLTypeEnum!float == GL_FLOAT);
+}
+
+struct Viewport
+{
+
+    @nogc nothrow pure @safe const
+    {
+        @property float x() { return values[0]; }
+        @property float y() { return values[1]; }
+        @property float width() { return values[2]; }
+        @property float height() { return values[3]; }
+    }
+
+    private float[4] values;
 }
 
 /**
@@ -522,6 +538,14 @@ interface OpenGLContext
     void viewport(int x, int y, uint width, uint height);
 
     /**
+    get viewport.
+
+    Returns:
+        viewport values.
+    */
+    Viewport getViewport();
+
+    /**
     set clear color.
 
     Params:
@@ -726,6 +750,14 @@ class OpenGLContextImpl : OpenGLContext
         {
             glViewport(x, y, width, height);
             checkGLError();
+        }
+
+        Viewport getViewport()
+        {
+            Viewport result = void;
+            glGetFloatv(GL_VIEWPORT, result.values.ptr);
+            checkGLError();
+            return result;
         }
 
         void clearColor(float red, float blue, float green, float alpha)

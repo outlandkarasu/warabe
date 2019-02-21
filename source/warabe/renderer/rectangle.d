@@ -32,7 +32,8 @@ class RectangleBufferEntry
         this.program_ = program;
         this.mvpLocation_ = context.getUniformLocation(program, MVP_UNIFORM_NAME);
 
-        immutable scale = Mat4().scale(2.0f / 800.0f, -2.0f / 600.0f);
+        const viewport = context.getViewport();
+        immutable scale = Mat4().scale(2.0f / viewport.width, -2.0f / viewport.height);
         immutable offset = Mat4().move(-1.0f, 1.0f);
         this.mvp_.productAssign(offset, scale);
     }
