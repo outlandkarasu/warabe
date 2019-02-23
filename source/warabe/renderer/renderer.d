@@ -12,6 +12,9 @@ screen renderer.
 */
 struct Renderer
 {
+    @disable this();
+    @disable this(this);
+
     /**
     Params:
         context = OpenGL context.
@@ -24,12 +27,7 @@ struct Renderer
     body
     {
         this.context_ = context;
-        this.rectangleBuffer_ = new RectangleBuffer(context);
-    }
-
-    ~this()
-    {
-        destroy(rectangleBuffer_);
+        this.rectangleBuffer_ = RectangleBuffer(context);
     }
 
     /**
