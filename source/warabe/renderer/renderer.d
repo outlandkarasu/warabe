@@ -12,6 +12,9 @@ screen renderer.
 */
 struct Renderer
 {
+    @disable this();
+    @disable this(this);
+
     /**
     Params:
         context = OpenGL context.

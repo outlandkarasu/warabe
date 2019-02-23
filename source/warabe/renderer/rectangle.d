@@ -24,6 +24,7 @@ import std.array : empty;
 struct RectangleBuffer
 {
     @disable this();
+    @disable this(this);
 
     this(OpenGLContext context)
     in
