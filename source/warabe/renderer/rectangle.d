@@ -17,8 +17,7 @@ import warabe.opengl :
     VertexArrayID,
     VerticesID;
 
-import std.algorithm : find;
-import std.array : empty;
+package:
 
 ///
 struct RectangleBuffer
@@ -40,42 +39,41 @@ struct RectangleBuffer
 
     ~this()
     {
-        foreach(ref e; buffers_)
+        foreach (ref e; buffers_)
         {
-            destroy(e);
+            e.destroy(context_);
         }
-        context_.deleteShaderProgram(this.program_);
+        context_.deleteShaderProgram(program_);
     }
 
     void add()(auto ref const(Rectangle) rect, auto ref const(Color) color)
     {
-        auto found = buffers_.find!((b) => b.hasCapacity);
-        if (!found.empty)
+        foreach (ref e; buffers_)
         {
-            found[0].add(rect, color);
+            if (e.hasCapacity)
+            {
+                found[0].add(context_, rect, color);
+                return;
+            }
         }
-        else
-        {
-            auto entry = new RectangleBufferEntry(
-                context_, program_, CAPACITY);
-            scope(failure) destroy(entry);
-            buffers_ ~= entry;
 
-            entry.add(rect, color);
-        }
+        auto entry = RectangleBufferEntry(context_, program_, CAPACITY);
+        scope (failure) entry.destroy(context_);
+        buffers_ ~= entry;
+        entry.add(context_, rect, color);
     }
 
     void draw()
     {
-        foreach(e; buffers_)
+        foreach (ref e; buffers_)
         {
-            e.draw();
+            e.draw(context_, program_);
         }
     }
 
-    void reset()
+    @nogc nothrow @safe void reset()
     {
-        foreach(e; buffers_)
+        foreach (ref e; buffers_)
         {
             e.reset();
         }
@@ -103,26 +101,31 @@ unittest
     buffer.reset();
 }
 
-///
-class RectangleBufferEntry
-{
-    this(OpenGLContext context, ShaderProgramID program, uint capacity)
-    {
-        this.context_ = context;
+private:
 
+///
+struct RectangleBufferEntry
+{
+    this(scope OpenGLContext context, ShaderProgramID program, uint capacity)
+    in
+    {
+        assert(context !is null);
+        assert(capacity > 0);
+    }
+    body
+    {
         this.vertices_ = context.createVertices!Vertex(
             capacity * VERTICES_PER_RECT);
-        scope(failure) context.deleteVertices(this.vertices_);
+        scope (failure) context.deleteVertices(this.vertices_);
 
         this.indices_ = context.createIndices!ushort(
             capacity * INDICES_PER_RECT);
-        scope(failure) context.deleteIndices(this.indices_);
+        scope (failure) context.deleteIndices(this.indices_);
 
         this.vao_ = context.createVAO();
-        scope(failure) context.deleteVAO(this.vao_);
+        scope (failure) context.deleteVAO(this.vao_);
 
         this.capacity_ = capacity;
-        this.program_ = program;
         this.mvpLocation_ = context.getUniformLocation(program, MVP_UNIFORM_NAME);
 
         const viewport = context.getViewport();
@@ -136,9 +139,13 @@ class RectangleBufferEntry
         return count_ < capacity_;
     }
 
-    void add()(auto ref const(Rectangle) rect, auto ref const(Color) color)
+    void add(
+            scope OpenGLContext context,
+            ref const(Rectangle) rect,
+            ref const(Color) color)
     in
     {
+        assert(context !is null);
         assert(hasCapacity);
     }
     body
@@ -152,7 +159,7 @@ class RectangleBufferEntry
             { [rect.right, rect.bottom, 0.0f], colorArray },
             { [rect.left, rect.bottom, 0.0f], colorArray },
         ];
-        context_.copyTo(vertices_, verticesEnd_, vertices);
+        context.copyTo(vertices_, verticesEnd_, vertices);
 
         // append rect indices.
         scope immutable(ushort)[INDICES_PER_RECT] indices = [
@@ -163,42 +170,66 @@ class RectangleBufferEntry
             cast(ushort)(verticesEnd_ + 2),
             cast(ushort)(verticesEnd_ + 3),
         ];
-        context_.copyTo(indices_, indicesEnd_, indices);
+        context.copyTo(indices_, indicesEnd_, indices);
 
         verticesEnd_ += VERTICES_PER_RECT;
         indicesEnd_ += INDICES_PER_RECT;
         ++count_;
     }
 
-    void draw()
+    void draw(scope OpenGLContext context, ShaderProgramID program)
+    in
     {
-        setUpVAO();
-        context_.bind(vao_);
-        scope(exit) context_.unbindVAO();
+        assert(context !is null);
+    }
+    body
+    {
+        setUpVAO(context);
+        context.bind(vao_);
+        scope (exit) context.unbindVAO();
 
-        context_.useProgram(program_);
-        scope(exit) context_.unuseProgram();
+        context.useProgram(program);
+        scope (exit) context.unuseProgram();
 
-        context_.uniform(mvpLocation_, mvp_);
+        context.uniform(mvpLocation_, mvp_);
 
-        context_.draw!ushort(
+        context.draw!ushort(
             GLDrawMode.triangles,
             cast(uint) indicesEnd_,
             0);
     }
 
-    void reset()
+    @nogc nothrow @safe void reset()
     {
         verticesEnd_ = 0;
         indicesEnd_ = 0;
         count_ = 0;
     }
 
-    ~this()
+    void destroy(scope OpenGLContext context)
+    in
     {
-        this.context_.deleteVertices(this.vertices_);
-        this.context_.deleteIndices(this.indices_);
-        this.context_.deleteVAO(this.vao_);
+        assert(context !is null);
+    }
+    body
+    {
+        if (vertices_)
+        {
+            context.deleteVertices(vertices_);
+            vertices_ = 0;
+        }
+
+        if (indices_)
+        {
+            context.deleteIndices(indices_);
+            indices_ = 0;
+        }
+
+        if (vao_)
+        {
+            context.deleteVAO(vao_);
+            vao_ = 0;
+        }
     }
 
 private:
@@ -216,32 +247,30 @@ private:
         ubyte[4] color;
     }
 
-    void setUpVAO()
+    void setUpVAO(scope OpenGLContext context)
     {
-        context_.bind(vao_);
+        context.bind(vao_);
 
-        context_.bind(vertices_);
-        scope(exit) context_.unbindVertices();
+        context.bind(vertices_);
+        scope (exit) context.unbindVertices();
 
-        context_.vertexAttributes!(Vertex, float)(
+        context.vertexAttributes!(Vertex, float)(
                 0, 3, Vertex.init.position.offsetof);
-        context_.enableVertexAttributes(0);
+        context.enableVertexAttributes(0);
 
-        context_.vertexAttributes!(Vertex, ubyte)(
+        context.vertexAttributes!(Vertex, ubyte)(
                 1, 4, Vertex.init.color.offsetof, true);
-        context_.enableVertexAttributes(1);
+        context.enableVertexAttributes(1);
 
-        context_.bind(indices_);
-        scope(exit) context_.unbindIndices();
+        context.bind(indices_);
+        scope (exit) context.unbindIndices();
 
-        context_.unbindVAO();
+        context.unbindVAO();
     }
 
-    OpenGLContext context_;
     VertexArrayID vao_;
     VerticesID vertices_;
     IndicesID indices_;
-    ShaderProgramID program_;
     UniformLocation mvpLocation_;
     Mat4 mvp_;
     size_t capacity_;
@@ -257,23 +286,26 @@ unittest
     import warabe.coodinates : Point, Size;
 
     scope context = new BlackHole!OpenGLContext;
+    immutable program = ShaderProgramID(123);
 
-    scope buffer = new RectangleBufferEntry(context, ShaderProgramID(123), 2);
+    scope buffer = new RectangleBufferEntry(context, program, 2);
     assert(buffer.hasCapacity);
 
-    buffer.add(
-        Rectangle(10, 20, 100, 200),
-        Color(0xff, 0x80, 0x40, 0xff));
+    immutable rect1 = Rectangle(10, 20, 100, 200);
+    immutable color1 = Color(0xff, 0x80, 0x40, 0xff);
+    buffer.add(context, rect1, color1);
     assert(buffer.hasCapacity);
 
-    buffer.add(
-        Rectangle(10, 20, 100, 200),
-        Color(0xff, 0x80, 0x40, 0xff));
+    immutable rect2 = Rectangle(10, 20, 100, 200);
+    immutable color2 = Color(0xff, 0x80, 0x40, 0xff);
+    buffer.add(context, rect2, color2);
     assert(!buffer.hasCapacity);
 
-    buffer.draw();
+    buffer.draw(context, program);
 
     buffer.reset();
     assert(buffer.hasCapacity);
+
+    buffer.destroy(context);
 }
 
