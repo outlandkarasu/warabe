@@ -52,6 +52,7 @@ import warabe.opengl :
     OpenGLContext,
     OpenGLVersion,
     initializeOpenGL;
+import warabe.renderer : Renderer;
 
 import warabe.event : EventHandler, EventHandlerResult;
 import warabe.exception : WarabeException;
@@ -198,6 +199,7 @@ void mainLoop(
         scope SDL_Window* window)
 {
     openGLContext.viewport(0, 0, params.windowWidth, params.windowHeight);
+    auto renderer = Renderer(openGLContext);
 
     immutable frequency = SDL_GetPerformanceFrequency();
     immutable msPerFrame = 1000.0f / params.fps;
@@ -228,8 +230,8 @@ void mainLoop(
         // render a frame.
         openGLContext.clearColor(0.0f, 0.0f, 0.0f, 0.0f);
         openGLContext.clear(GLBufferBit.color | GLBufferBit.depth);
-        application.render(openGLContext);
-        openGLContext.flush();
+        application.draw(renderer);
+        renderer.flush();
         SDL_GL_SwapWindow(window);
 
         immutable elapse = (SDL_GetPerformanceCounter() - start) * 1000.0f / frequency;

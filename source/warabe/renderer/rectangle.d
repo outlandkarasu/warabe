@@ -17,17 +17,107 @@ import warabe.opengl :
     VertexArrayID,
     VerticesID;
 
+import std.algorithm : find;
+import std.array : empty;
+
+///
+class RectangleBuffer
+{
+    this(OpenGLContext context)
+    in
+    {
+        assert(context !is null);
+    }
+    body
+    {
+        this.context_ = context;
+        this.program_ = context.createShaderProgram(
+            import("plane.vert"), import("plane.frag"));
+    }
+
+    ~this()
+    {
+        foreach(ref e; buffers_)
+        {
+            destroy(e);
+        }
+        context_.deleteShaderProgram(this.program_);
+    }
+
+    void add()(auto ref const(Rectangle) rect, auto ref const(Color) color)
+    {
+        auto found = buffers_.find!((b) => b.hasCapacity);
+        if (!found.empty)
+        {
+            found[0].add(rect, color);
+        }
+        else
+        {
+            auto entry = new RectangleBufferEntry(
+                context_, program_, CAPACITY);
+            scope(failure) destroy(entry);
+            buffers_ ~= entry;
+
+            entry.add(rect, color);
+        }
+    }
+
+    void draw()
+    {
+        foreach(e; buffers_)
+        {
+            e.draw();
+        }
+    }
+
+    void reset()
+    {
+        foreach(e; buffers_)
+        {
+            e.reset();
+        }
+    }
+
+private:
+
+    enum CAPACITY = 4;
+
+    RectangleBufferEntry[] buffers_;
+    OpenGLContext context_;
+    ShaderProgramID program_;
+}
+
+///
+unittest
+{
+    import std.typecons : BlackHole;
+    import warabe.coodinates : Point, Size;
+
+    scope context = new BlackHole!OpenGLContext;
+    scope buffer = new RectangleBuffer(context);
+    buffer.add(Rectangle(10, 20, 100, 200), Color(0xff, 0x80, 0x40, 0xff));
+    buffer.draw();
+    buffer.reset();
+}
+
 ///
 class RectangleBufferEntry
 {
     this(OpenGLContext context, ShaderProgramID program, uint capacity)
     {
         this.context_ = context;
+
         this.vertices_ = context.createVertices!Vertex(
             capacity * VERTICES_PER_RECT);
+        scope(failure) context.deleteVertices(this.vertices_);
+
         this.indices_ = context.createIndices!ushort(
             capacity * INDICES_PER_RECT);
+        scope(failure) context.deleteIndices(this.indices_);
+
         this.vao_ = context.createVAO();
+        scope(failure) context.deleteVAO(this.vao_);
+
         this.capacity_ = capacity;
         this.program_ = program;
         this.mvpLocation_ = context.getUniformLocation(program, MVP_UNIFORM_NAME);
@@ -92,6 +182,13 @@ class RectangleBufferEntry
             GLDrawMode.triangles,
             cast(uint) indicesEnd_,
             0);
+    }
+
+    void reset()
+    {
+        verticesEnd_ = 0;
+        indicesEnd_ = 0;
+        count_ = 0;
     }
 
     ~this()
@@ -172,5 +269,8 @@ unittest
     assert(!buffer.hasCapacity);
 
     buffer.draw();
+
+    buffer.reset();
+    assert(buffer.hasCapacity);
 }
 

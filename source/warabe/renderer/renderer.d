@@ -1,14 +1,37 @@
 module warabe.renderer.renderer;
 
 import warabe.color : Color;
-import warabe.coodinates :
-    Rectangle;
+import warabe.coodinates : Rectangle;
+import warabe.opengl :
+    OpenGLContext,
+    ShaderProgramID;
+import warabe.renderer.rectangle : RectangleBuffer;
 
 /**
 screen renderer.
 */
 struct Renderer
 {
+    /**
+    Params:
+        context = OpenGL context.
+    */
+    this(OpenGLContext context)
+    in
+    {
+        assert(context !is null);
+    }
+    body
+    {
+        this.context_ = context;
+        this.rectangleBuffer_ = new RectangleBuffer(context);
+    }
+
+    ~this()
+    {
+        destroy(rectangleBuffer_);
+    }
+
     /**
     render a rectangle.
 
@@ -18,16 +41,27 @@ struct Renderer
     Returns:
         this renderer.
     **/
-    ref auto rectangle()(auto ref const(Rectangle) rect, Color color)
+    ref auto rectangle()(
+            auto ref const(Rectangle) rect,
+            auto ref const(Color) color)
     {
+        rectangleBuffer_.add(rect, color);
         return this;
     }
 
     /**
     render a frame and clear rendering data.
     */
-    @nogc nothrow void flush() const
+    void flush()
     {
+        rectangleBuffer_.draw();
+        rectangleBuffer_.reset();
     }
+
+private:
+
+    OpenGLContext context_;
+    ShaderProgramID rectangleProgram_;
+    RectangleBuffer rectangleBuffer_;
 }
 
