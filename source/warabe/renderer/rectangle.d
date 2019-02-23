@@ -94,6 +94,13 @@ class RectangleBufferEntry
             0);
     }
 
+    void reset()
+    {
+        verticesEnd_ = 0;
+        indicesEnd_ = 0;
+        count_ = 0;
+    }
+
     ~this()
     {
         this.context_.deleteVertices(this.vertices_);
@@ -172,5 +179,8 @@ unittest
     assert(!buffer.hasCapacity);
 
     buffer.draw();
+
+    buffer.reset();
+    assert(buffer.hasCapacity);
 }
 
