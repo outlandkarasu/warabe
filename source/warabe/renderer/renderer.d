@@ -24,12 +24,7 @@ struct Renderer
     body
     {
         this.context_ = context;
-        this.rectangleBuffer_ = new RectangleBuffer(context);
-    }
-
-    ~this()
-    {
-        destroy(rectangleBuffer_);
+        this.rectangleBuffer_ = RectangleBuffer(context);
     }
 
     /**

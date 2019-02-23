@@ -21,8 +21,10 @@ import std.algorithm : find;
 import std.array : empty;
 
 ///
-class RectangleBuffer
+struct RectangleBuffer
 {
+    @disable this();
+
     this(OpenGLContext context)
     in
     {
@@ -94,7 +96,7 @@ unittest
     import warabe.coodinates : Point, Size;
 
     scope context = new BlackHole!OpenGLContext;
-    scope buffer = new RectangleBuffer(context);
+    scope buffer = RectangleBuffer(context);
     buffer.add(Rectangle(10, 20, 100, 200), Color(0xff, 0x80, 0x40, 0xff));
     buffer.draw();
     buffer.reset();
