@@ -10,11 +10,7 @@ import warabe.event :
     DefaultEventHandler,
     EventHandlerResult;
 
-import warabe.opengl :
-    OpenGLContext,
-    ShaderProgramID;
-
-import warabe.renderer : RectangleBufferEntry;
+import warabe.renderer : Renderer;
 
 import core.stdc.stdio : printf;
 
@@ -26,27 +22,14 @@ class App : Application
         return EventHandlerResult.CONTINUE;
     }
 
-    override void render(scope OpenGLContext context)
+    override void draw(scope ref Renderer renderer)
     {
-        if (rectangles_ is null)
-        {
-            program_ = context.createShaderProgram(
-                import("plane.vert"),
-                import("plane.frag"));
-            rectangles_ = new RectangleBufferEntry(context, program_, 3);
-            rectangles_.add(Rectangle(5, 5, 100, 200), Color(255, 0, 0, 0));
-            rectangles_.add(Rectangle(10, 25, 10, 20), Color(0, 255, 0, 0));
-            rectangles_.add(Rectangle(13, 29, 20, 10), Color(0, 0, 255, 0));
-        }
-        rectangles_.draw();
+        renderer.rectangle(Rectangle(5, 5, 100, 200), Color(255, 0, 0, 0));
+        renderer.rectangle(Rectangle(10, 25, 10, 20), Color(0, 255, 0, 0));
+        renderer.rectangle(Rectangle(13, 29, 20, 10), Color(0, 0, 255, 0));
     }
 
     mixin DefaultEventHandler;
-
-private:
-
-    RectangleBufferEntry rectangles_;
-    ShaderProgramID program_;
 }
 
 /**

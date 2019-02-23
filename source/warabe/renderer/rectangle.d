@@ -23,16 +23,25 @@ import std.array : empty;
 ///
 class RectangleBuffer
 {
-    this(OpenGLContext context, ShaderProgramID program)
+    this(OpenGLContext context)
     in
     {
         assert(context !is null);
-        assert(program);
     }
     body
     {
         this.context_ = context;
-        this.program_ = program;
+        this.program_ = context.createShaderProgram(
+            import("plane.vert"), import("plane.frag"));
+    }
+
+    ~this()
+    {
+        foreach(ref e; buffers_)
+        {
+            destroy(e);
+        }
+        context_.deleteShaderProgram(this.program_);
     }
 
     void add()(auto ref const(Rectangle) rect, auto ref const(Color) color)
@@ -69,14 +78,6 @@ class RectangleBuffer
         }
     }
 
-    ~this()
-    {
-        foreach(ref e; buffers_)
-        {
-            destroy(e);
-        }
-    }
-
 private:
 
     enum CAPACITY = 4;
@@ -93,7 +94,7 @@ unittest
     import warabe.coodinates : Point, Size;
 
     scope context = new BlackHole!OpenGLContext;
-    scope buffer = new RectangleBuffer(context, ShaderProgramID(123));
+    scope buffer = new RectangleBuffer(context);
     buffer.add(Rectangle(10, 20, 100, 200), Color(0xff, 0x80, 0x40, 0xff));
     buffer.draw();
     buffer.reset();

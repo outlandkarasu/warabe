@@ -20,11 +20,11 @@ struct ApplicationParameters
 interface Application : EventHandler
 {
     /**
-    frame render function.
+    frame draw function.
     Params:
-        openGLContext = OpenGL renderer context.
+        renderer = renderer context.
     */
-    void render(scope OpenGLContext openGLContext);
+    void draw(scope ref Renderer renderer);
 }
 
 /**
