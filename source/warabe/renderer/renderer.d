@@ -48,6 +48,22 @@ struct Renderer
     }
 
     /**
+    render an ellipse.
+
+    Params:
+        bounding = ellipse bounding rectangle.
+        color = ellipse color.
+    Returns:
+        this renderer.
+    **/
+    ref auto ellipse()(
+            auto ref const(Rectangle) bounding,
+            auto ref const(Color) color)
+    {
+        return this;
+    }
+
+    /**
     render a frame and clear rendering data.
     */
     void flush()
