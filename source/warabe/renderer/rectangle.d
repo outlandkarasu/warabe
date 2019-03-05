@@ -52,7 +52,7 @@ struct RectangleBuffer
         {
             if (e.hasCapacity)
             {
-                found[0].add(context_, rect, color);
+                e.add(context_, rect, color);
                 return;
             }
         }
