@@ -88,8 +88,6 @@ struct PrimitiveBuffer(Vertex, uint verticesCount, uint indicesCount)
 
         auto entry = BufferEntry(
                 context_,
-                program_,
-                viewportMatrixLocation_,
                 capacity_);
         scope (failure) entry.destroy(context_);
 
@@ -101,7 +99,7 @@ struct PrimitiveBuffer(Vertex, uint verticesCount, uint indicesCount)
     {
         foreach (ref e; buffers_)
         {
-            e.draw(context_, program_);
+            e.draw(context_, program_, viewportMatrixLocation_);
         }
     }
 
@@ -133,8 +131,6 @@ struct PrimitiveBufferEntry(Vertex, uint verticesCount, uint indicesCount)
 {
     this(
         scope OpenGLContext context,
-        ShaderProgramID program,
-        UniformLocation viewportMatrixLocation,
         size_t capacity)
     in
     {
@@ -160,7 +156,6 @@ struct PrimitiveBufferEntry(Vertex, uint verticesCount, uint indicesCount)
         immutable offset = Mat4().move(-1.0f, 1.0f);
         this.viewportMatrix_.productAssign(offset, scale);
 
-        this.viewportMatrixLocation_ = viewportMatrixLocation;
         this.capacity_ = capacity;
     }
 
@@ -195,7 +190,10 @@ struct PrimitiveBufferEntry(Vertex, uint verticesCount, uint indicesCount)
         ++count_;
     }
 
-    void draw(scope OpenGLContext context, ShaderProgramID program)
+    void draw(
+            scope OpenGLContext context,
+            ShaderProgramID program,
+            UniformLocation viewportMatrixLocation)
     in
     {
         assert(context !is null);
@@ -209,7 +207,7 @@ struct PrimitiveBufferEntry(Vertex, uint verticesCount, uint indicesCount)
         context.useProgram(program);
         scope (exit) context.unuseProgram();
 
-        context.uniform(viewportMatrixLocation_, viewportMatrix_);
+        context.uniform(viewportMatrixLocation, viewportMatrix_);
 
         context.draw!ushort(
             GLDrawMode.triangles, cast(uint) indicesEnd_, 0);
@@ -286,7 +284,6 @@ private:
     VertexArrayID vao_;
     VerticesID vertices_;
     IndicesID indices_;
-    UniformLocation viewportMatrixLocation_;
     Mat4 viewportMatrix_;
     size_t capacity_;
     size_t count_;
