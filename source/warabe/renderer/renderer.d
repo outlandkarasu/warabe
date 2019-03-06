@@ -2,7 +2,11 @@ module warabe.renderer.renderer;
 
 import warabe.color : Color;
 import warabe.coodinates : Rectangle;
+import warabe.lina.matrix :
+    move,
+    scale;
 import warabe.opengl :
+    Mat4,
     OpenGLContext,
     ShaderProgramID;
 import warabe.renderer.rectangle : RectangleBuffer;
@@ -68,14 +72,25 @@ struct Renderer
     */
     void flush()
     {
-        rectangleBuffer_.draw();
+        Mat4 viewportMatrix;
+        calculateViewportMatrix(viewportMatrix);
+        rectangleBuffer_.draw(viewportMatrix);
         rectangleBuffer_.reset();
     }
 
 private:
 
     OpenGLContext context_;
-    ShaderProgramID rectangleProgram_;
+    Mat4 viewportMatrix_;
     RectangleBuffer rectangleBuffer_;
+
+    void calculateViewportMatrix(scope out Mat4 dest)
+    {
+        const viewport = context_.getViewport();
+        immutable scale = Mat4().scale(
+            2.0f / viewport.width, -2.0f / viewport.height);
+        immutable offset = Mat4().move(-1.0f, 1.0f);
+        dest.productAssign(offset, scale);
+    }
 }
 

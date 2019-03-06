@@ -62,9 +62,9 @@ struct RectangleBuffer
         buffer_.add(vertices, indices);
     }
 
-    void draw()
+    void draw(ref const(Mat4) viewportMatrix)
     {
-        buffer_.draw();
+        buffer_.draw(viewportMatrix);
     }
 
     @nogc nothrow @safe void reset()

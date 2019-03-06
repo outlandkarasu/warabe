@@ -8,10 +8,6 @@ import std.traits :
 
 import warabe.color : Color;
 
-import warabe.lina.matrix :
-    move,
-    scale;
-
 import warabe.opengl :
     GLDrawMode,
     IndicesID,
@@ -95,11 +91,14 @@ struct PrimitiveBuffer(Vertex, uint verticesCount, uint indicesCount)
         entry.add(context_, vertices, indices);
     }
 
-    void draw()
+    void draw(ref const(Mat4) viewportMatrix)
     {
         foreach (ref e; buffers_)
         {
-            e.draw(context_, program_, viewportMatrixLocation_);
+            e.draw(context_,
+                    program_,
+                    viewportMatrix,
+                    viewportMatrixLocation_);
         }
     }
 
@@ -150,12 +149,6 @@ struct PrimitiveBufferEntry(Vertex, uint verticesCount, uint indicesCount)
         this.vao_ = context.createVAO();
         scope (failure) context.deleteVAO(this.vao_);
 
-        // calculate viewport matrix.
-        const viewport = context.getViewport();
-        immutable scale = Mat4().scale(2.0f / viewport.width, -2.0f / viewport.height);
-        immutable offset = Mat4().move(-1.0f, 1.0f);
-        this.viewportMatrix_.productAssign(offset, scale);
-
         this.capacity_ = capacity;
     }
 
@@ -193,6 +186,7 @@ struct PrimitiveBufferEntry(Vertex, uint verticesCount, uint indicesCount)
     void draw(
             scope OpenGLContext context,
             ShaderProgramID program,
+            ref const(Mat4) viewportMatrix,
             UniformLocation viewportMatrixLocation)
     in
     {
@@ -207,7 +201,7 @@ struct PrimitiveBufferEntry(Vertex, uint verticesCount, uint indicesCount)
         context.useProgram(program);
         scope (exit) context.unuseProgram();
 
-        context.uniform(viewportMatrixLocation, viewportMatrix_);
+        context.uniform(viewportMatrixLocation, viewportMatrix);
 
         context.draw!ushort(
             GLDrawMode.triangles, cast(uint) indicesEnd_, 0);
@@ -284,7 +278,6 @@ private:
     VertexArrayID vao_;
     VerticesID vertices_;
     IndicesID indices_;
-    Mat4 viewportMatrix_;
     size_t capacity_;
     size_t count_;
     size_t verticesEnd_;
