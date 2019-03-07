@@ -6,6 +6,7 @@ import warabe.opengl.shader : createShaderProgram;
 
 import bindbc.opengl :
     GL_ARRAY_BUFFER,
+    GL_BLEND,
     GL_BYTE,
     GL_COLOR_BUFFER_BIT,
     GL_DEPTH_BUFFER_BIT,
@@ -26,6 +27,7 @@ import bindbc.opengl :
     GL_VIEWPORT,
     glBindBuffer,
     glBindVertexArray,
+    glBlendFunc,
     glBufferData,
     glBufferSubData,
     glClear,
@@ -33,10 +35,12 @@ import bindbc.opengl :
     glDeleteBuffers,
     glDeleteProgram,
     glDeleteVertexArrays,
+    glDisable,
     glDisableVertexAttribArray,
     glDrawElements,
     glEnableVertexAttribArray,
     GLenum,
+    glEnable,
     glFlush,
     glGenBuffers,
     glGetFloatv,
@@ -50,6 +54,23 @@ import bindbc.opengl :
     glVertexAttribPointer,
     glViewport,
     GLvoid;
+
+import bindbc.opengl :
+    GL_ZERO,
+    GL_ONE,
+    GL_SRC_COLOR,
+    GL_ONE_MINUS_SRC_COLOR,
+    GL_DST_COLOR,
+    GL_ONE_MINUS_DST_COLOR,
+    GL_SRC_ALPHA,
+    GL_ONE_MINUS_SRC_ALPHA,
+    GL_DST_ALPHA,
+    GL_ONE_MINUS_DST_ALPHA,
+    GL_CONSTANT_COLOR,
+    GL_ONE_MINUS_CONSTANT_COLOR,
+    GL_CONSTANT_ALPHA,
+    GL_ONE_MINUS_CONSTANT_ALPHA,
+    GL_SRC_ALPHA_SATURATE;
 
 import std.traits : isIntegral;
 import std.typecons : Typedef;
@@ -145,6 +166,26 @@ enum GLDrawMode
     triangles = GL_TRIANGLES,
 }
 
+/// OpenGL blend mode.
+enum GLBlendMode
+{
+    zero = GL_ZERO,
+    one = GL_ONE,
+    src = GL_SRC_COLOR,
+    oneMinusSrc = GL_ONE_MINUS_SRC_COLOR,
+    dst = GL_DST_COLOR,
+    oneMinusDst = GL_ONE_MINUS_DST_COLOR,
+    srcAlpha = GL_SRC_ALPHA,
+    oneMinusSrcAlpha = GL_ONE_MINUS_SRC_ALPHA,
+    dstAlpha = GL_DST_ALPHA,
+    oneMinusDstAlpha = GL_ONE_MINUS_DST_ALPHA,
+    constant = GL_CONSTANT_COLOR,
+    oneMinusConstant = GL_ONE_MINUS_CONSTANT_COLOR,
+    constantAlpha = GL_CONSTANT_ALPHA,
+    oneMinusConstantAlpha = GL_ONE_MINUS_CONSTANT_ALPHA,
+    srcAlphaSaturate = GL_SRC_ALPHA_SATURATE
+}
+
 @nogc nothrow pure @safe unittest
 {
     static assert(GLTypeEnum!byte == GL_BYTE);
@@ -173,6 +214,24 @@ OpenGL context for renderer.
 */
 interface OpenGLContext
 {
+    /**
+    enable color buffer blend
+    **/
+    void enableBlend();
+
+    /**
+    disable color buffer blend.
+    **/
+    void disableBlend();
+
+    /**
+    set color buffer blend
+
+    Params:
+        srcFactor = source factor.
+        dstFactor = destination factor.
+    **/
+    void setBlendFunc(GLBlendMode srcFactor, GLBlendMode dstFactor);
 
     /**
     create vertex array buffer object.
@@ -596,6 +655,25 @@ class OpenGLContextImpl : OpenGLContext
 
     override
     {
+
+        void enableBlend()
+        {
+            glEnable(GL_BLEND);
+            checkGLError();
+        }
+
+        void disableBlend()
+        {
+            glDisable(GL_BLEND);
+            checkGLError();
+        }
+
+        void setBlendFunc(GLBlendMode srcFactor, GLBlendMode dstFactor)
+        {
+            glBlendFunc(srcFactor, dstFactor);
+            checkGLError();
+        }
+
 
         VerticesID createVerticesFromBytes(uint size)
         {

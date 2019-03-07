@@ -48,6 +48,7 @@ import warabe.application :
     FrameCounter;
 
 import warabe.opengl :
+    GLBlendMode,
     GLBufferBit,
     OpenGLContext,
     OpenGLVersion,
@@ -113,8 +114,8 @@ void runSDL(ref const(ApplicationParameters) params, scope Application applicati
         WINDOW_FLAGS));
     scope(exit) SDL_DestroyWindow(window);
 
-    auto openGlContext = sdlEnforce(SDL_GL_CreateContext(window));
-    scope(exit) SDL_GL_DeleteContext(openGlContext);
+    auto sdlGlContext = sdlEnforce(SDL_GL_CreateContext(window));
+    scope(exit) SDL_GL_DeleteContext(sdlGlContext);
 
     scope openGLContext = initializeOpenGL();
     scope(exit) destroy(openGLContext);
@@ -198,7 +199,11 @@ void mainLoop(
         scope Application application,
         scope SDL_Window* window)
 {
+    // set up OpenGL context.
+    openGLContext.enableBlend();
+    openGLContext.setBlendFunc(GLBlendMode.one, GLBlendMode.oneMinusSrcAlpha);
     openGLContext.viewport(0, 0, params.windowWidth, params.windowHeight);
+
     auto renderer = Renderer(openGLContext);
 
     immutable frequency = SDL_GetPerformanceFrequency();
