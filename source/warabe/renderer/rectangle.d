@@ -7,7 +7,9 @@ import warabe.opengl :
     Mat4,
     OpenGLContext;
 
-import warabe.renderer.buffer : PrimitiveBuffer;
+import warabe.renderer.buffer :
+    PrimitiveBuffer,
+    VertexAttributeType;
 
 package:
 
@@ -74,6 +76,8 @@ private:
     struct Vertex
     {
         float[3] position;
+
+        @(VertexAttributeType.normalized)
         ubyte[4] color;
     }
 

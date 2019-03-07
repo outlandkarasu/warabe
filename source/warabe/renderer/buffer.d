@@ -3,7 +3,9 @@ module warabe.renderer.buffer;
 import std.traits :
     FieldNameTuple,
     ForeachType,
+    hasUDA,
     isArray, 
+    isIntegral,
     Unqual;
 
 import warabe.color : Color;
@@ -21,6 +23,11 @@ import warabe.opengl :
 package:
 
 enum VIEWPORT_MATRIX_UNIFORM_NAME = "viewport";
+
+enum VertexAttributeType
+{
+    normalized
+}
 
 /**
  *  primitives buffer structure template.
@@ -254,7 +261,7 @@ private:
             enum initField = "Vertex.init." ~ fieldName;
             enum fieldOffset = mixin(initField ~ ".offsetof");
             alias FieldType = typeof(mixin(initField));
-            static if(isArray!FieldType)
+            static if (isArray!FieldType)
             {
                 alias ElementType = Unqual!(ForeachType!FieldType);
                 enum length = mixin(initField ~ ".length");
@@ -265,7 +272,19 @@ private:
                 enum length = 1;
             }
 
-            context.vertexAttributes!(Vertex, ElementType)(i, length, fieldOffset);
+            static if (isIntegral!ElementType)
+            {
+                enum normalized = hasUDA!(
+                        mixin("Vertex." ~ fieldName),
+                        VertexAttributeType.normalized);
+                context.vertexAttributes!(Vertex, ElementType)(
+                        i, length, fieldOffset, normalized);
+            }
+            else
+            {
+                context.vertexAttributes!(Vertex, ElementType)(i, length, fieldOffset);
+            }
+
             context.enableVertexAttributes(i);
         }
 
