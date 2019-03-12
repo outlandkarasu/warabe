@@ -3,21 +3,13 @@ module warabe.renderer.rectangle;
 import warabe.color : Color;
 import warabe.coodinates : Rectangle;
 
-import warabe.lina.matrix :
-    move,
-    scale;
-
 import warabe.opengl :
-    GLDrawMode,
-    IndicesID,
     Mat4,
-    OpenGLContext,
-    ShaderProgramID,
-    UniformLocation,
-    VertexArrayID,
-    VerticesID;
+    OpenGLContext;
 
-import warabe.renderer.buffer : PrimitiveBuffer;
+import warabe.renderer.buffer :
+    PrimitiveBuffer,
+    VertexAttributeType;
 
 package:
 
@@ -84,6 +76,8 @@ private:
     struct Vertex
     {
         float[3] position;
+
+        @(VertexAttributeType.normalized)
         ubyte[4] color;
     }
 
@@ -101,8 +95,9 @@ unittest
 
     scope context = new BlackHole!OpenGLContext;
     scope buffer = RectangleBuffer(context);
+    immutable viewport = Mat4();
     buffer.add(Rectangle(10, 20, 100, 200), Color(0xff, 0x80, 0x40, 0xff));
-    buffer.draw();
+    buffer.draw(viewport);
     buffer.reset();
 }
 

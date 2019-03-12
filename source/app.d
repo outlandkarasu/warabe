@@ -22,11 +22,14 @@ class App : Application
         return EventHandlerResult.CONTINUE;
     }
 
+    ubyte n = 0;
+
     override void draw(scope ref Renderer renderer)
     {
-        renderer.rectangle(Rectangle(5, 5, 100, 200), Color(255, 0, 0, 0));
-        renderer.rectangle(Rectangle(10, 25, 10, 20), Color(0, 255, 0, 0));
-        renderer.rectangle(Rectangle(13, 29, 20, 10), Color(0, 0, 255, 0));
+        renderer.rectangle(Rectangle(5, 5, 100, 200), Color(n, 0, 0, n));
+        renderer.rectangle(Rectangle(13, 29, 20, 10), Color(128, 128, 128, n));
+        renderer.rectangle(Rectangle(10, 25, 10, 20), Color(0, 255, 255, n));
+        ++n;
     }
 
     mixin DefaultEventHandler;
