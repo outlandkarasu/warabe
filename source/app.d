@@ -26,9 +26,9 @@ class App : Application
 
     override void draw(scope ref Renderer renderer)
     {
-        renderer.rectangle(Rectangle(5, 5, 100, 200), Color(n, 0, 0, n));
-        renderer.rectangle(Rectangle(13, 29, 20, 10), Color(128, 128, 128, n));
-        renderer.rectangle(Rectangle(10, 25, 10, 20), Color(0, 255, 255, n));
+        renderer.ellipse(Rectangle(5, 5, 100, 200), Color(n, 0, 0, n));
+        renderer.ellipse(Rectangle(13, 29, 20, 10), Color(128, 128, 128, n));
+        renderer.ellipse(Rectangle(10, 25, 10, 20), Color(0, 255, 255, n));
         ++n;
     }
 

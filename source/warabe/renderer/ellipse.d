@@ -28,8 +28,8 @@ struct EllipseBuffer
     {
         buffer_ = Buffer(
                 context,
-                import("plane.vert"),
-                import("plane.frag"),
+                import("ellipse.vert"),
+                import("ellipse.frag"),
                 CAPACITY);
     }
 
@@ -39,10 +39,10 @@ struct EllipseBuffer
         scope immutable(ubyte)[4] colorArray = [
             color.red, color.green, color.blue, color.alpha];
         scope immutable(Vertex)[VERTICES_PER_ELLIPSE] vertices = [
-            { [rect.left, rect.top, 0.0f], colorArray },
-            { [rect.right, rect.top, 0.0f], colorArray },
-            { [rect.right, rect.bottom, 0.0f], colorArray },
-            { [rect.left, rect.bottom, 0.0f], colorArray },
+            { [rect.left, rect.top, 0.0f], colorArray, [0, 0] },
+            { [rect.right, rect.top, 0.0f], colorArray, [ubyte.max, 0] },
+            { [rect.right, rect.bottom, 0.0f], colorArray, [ubyte.max, ubyte.max] },
+            { [rect.left, rect.bottom, 0.0f], colorArray, [0, ubyte.max] },
         ];
 
         // append rect indices.
@@ -78,6 +78,9 @@ private:
 
         @(VertexAttributeType.normalized)
         ubyte[4] color;
+
+        @(VertexAttributeType.normalized)
+        ubyte[2] localPosition;
     }
 
     alias Buffer = PrimitiveBuffer!(
