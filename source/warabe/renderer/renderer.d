@@ -10,6 +10,7 @@ import warabe.opengl :
     OpenGLContext,
     ShaderProgramID;
 import warabe.renderer.rectangle : RectangleBuffer;
+import warabe.renderer.ellipse: EllipseBuffer;
 
 /**
 screen renderer.
@@ -32,6 +33,7 @@ struct Renderer
     {
         this.context_ = context;
         this.rectangleBuffer_ = RectangleBuffer(context);
+        this.ellipseBuffer_ = EllipseBuffer(context);
     }
 
     /**
@@ -64,6 +66,7 @@ struct Renderer
             auto ref const(Rectangle) bounding,
             auto ref const(Color) color)
     {
+        ellipseBuffer_.add(bounding, color);
         return this;
     }
 
@@ -76,6 +79,9 @@ struct Renderer
         calculateViewportMatrix(viewportMatrix);
         rectangleBuffer_.draw(viewportMatrix);
         rectangleBuffer_.reset();
+
+        ellipseBuffer_.draw(viewportMatrix);
+        ellipseBuffer_.reset();
     }
 
 private:
@@ -83,6 +89,7 @@ private:
     OpenGLContext context_;
     Mat4 viewportMatrix_;
     RectangleBuffer rectangleBuffer_;
+    EllipseBuffer ellipseBuffer_;
 
     void calculateViewportMatrix(scope out Mat4 dest)
     {
