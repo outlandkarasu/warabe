@@ -6,6 +6,7 @@ import std.string : fromStringz, toStringz;
 
 import bindbc.sdl :
     loadSDL,
+    loadSDLTTF,
     SDL_AddTimer,
     SDL_GetError,
     SDL_CreateWindow,
@@ -39,6 +40,8 @@ import bindbc.sdl :
     SDL_WINDOW_OPENGL,
     SDLSupport,
     sdlSupport,
+    SDLTTFSupport,
+    sdlTTFSupport,
     Uint32,
     unloadSDL;
 
@@ -151,19 +154,22 @@ T sdlEnforce(T)(T value, string file = __FILE__, size_t line = __LINE__)
 
 /**
 Initialize SDL library.
-
-Returns:
-    loaded version.
 */
-SDLSupport initializeSDL()
+void initializeSDL()
 {
     immutable loaded = loadSDL();
     if (loaded != sdlSupport)
     {
-        sdlEnforce(loaded != SDLSupport.noLibrary, "library not found.");
-        sdlEnforce(loaded != SDLSupport.badLibrary, "bad library.");
+        sdlEnforce(loaded != SDLSupport.noLibrary, "SDL library not found.");
+        sdlEnforce(loaded != SDLSupport.badLibrary, "SDL bad library.");
     }
-    return loaded;
+
+    immutable loadedTTF = loadSDLTTF();
+    if (loadedTTF != sdlTTFSupport)
+    {
+        sdlEnforce(loadedTTF != SDLTTFSupport.noLibrary, "SDL_ttf library not found.");
+        sdlEnforce(loadedTTF != SDLTTFSupport.badLibrary, "SDL_ttf bad library.");
+    }
 }
 
 /**
