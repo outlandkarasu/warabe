@@ -43,7 +43,12 @@ import bindbc.sdl :
     SDLTTFSupport,
     sdlTTFSupport,
     Uint32,
-    unloadSDL;
+    unloadSDL,
+    unloadSDLTTF;
+
+import bindbc.sdl.ttf :
+    TTF_Init,
+    TTF_Quit;
 
 import warabe.application :
     Application,
@@ -95,6 +100,9 @@ void runSDL(ref const(ApplicationParameters) params, scope Application applicati
 
     sdlEnforce(SDL_Init(SDL_INIT_EVERYTHING) == 0);
     scope(exit) SDL_Quit();
+
+    sdlEnforce(TTF_Init() ==0);
+    scope(exit) TTF_Quit();
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, OpenGLVersion.major);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, OpenGLVersion.minor);
@@ -178,6 +186,7 @@ finalize SDL libraries.
 void finalizeSDL()
 {
     unloadSDL();
+    unloadSDLTTF();
 }
 
 /// on FPS count event.
