@@ -43,7 +43,8 @@ import bindbc.sdl :
     SDLTTFSupport,
     sdlTTFSupport,
     Uint32,
-    unloadSDL;
+    unloadSDL,
+    unloadSDLTTF;
 
 import warabe.application :
     Application,
@@ -178,6 +179,7 @@ finalize SDL libraries.
 void finalizeSDL()
 {
     unloadSDL();
+    unloadSDLTTF();
 }
 
 /// on FPS count event.
