@@ -9,18 +9,31 @@ import bindbc.opengl :
     GL_BLEND,
     GL_BYTE,
     GL_COLOR_BUFFER_BIT,
+    GL_CLAMP_TO_EDGE,
     GL_DEPTH_BUFFER_BIT,
     GL_ELEMENT_ARRAY_BUFFER,
     GL_FLOAT,
     GL_LINE_LOOP,
     GL_LINE_STRIP,
+    GL_LINEAR,
+    GL_LINEAR_MIPMAP_LINEAR,
+    GL_LINEAR_MIPMAP_NEAREST,
     GL_LINES,
+    GL_MIRRORED_REPEAT,
+    GL_NEAREST,
+    GL_NEAREST_MIPMAP_LINEAR,
+    GL_NEAREST_MIPMAP_NEAREST,
     GL_POINTS,
+    GL_REPEAT,
     GL_SHORT,
     GL_STENCIL_BUFFER_BIT,
     GL_STREAM_DRAW,
     GL_TEXTURE_2D,
     GL_TEXTURE_CUBE_MAP,
+    GL_TEXTURE_MIN_FILTER,
+    GL_TEXTURE_MAG_FILTER,
+    GL_TEXTURE_WRAP_S,
+    GL_TEXTURE_WRAP_T,
     GL_TRIANGLE_STRIP,
     GL_TRIANGLE_FAN,
     GL_TRIANGLES,
@@ -199,6 +212,34 @@ enum GLTextureTarget
 {
     texture2D = GL_TEXTURE_2D,
     cubeMap = GL_TEXTURE_CUBE_MAP
+}
+
+/// OpenGL texture parameter.
+enum GLTextureParameter
+{
+    minFilter = GL_TEXTURE_MIN_FILTER,
+    magFilter = GL_TEXTURE_MAG_FILTER,
+    wrapS = GL_TEXTURE_WRAP_S,
+    wrapT = GL_TEXTURE_WRAP_T
+}
+
+/// OpenGL texture filter functions.
+enum GLTextureFilter
+{
+    nearest = GL_NEAREST,
+    linear = GL_LINEAR,
+    nearestMipmapNearest = GL_NEAREST_MIPMAP_NEAREST,
+    linearMipmapNearest = GL_LINEAR_MIPMAP_NEAREST,
+    nearestMipmapLinear = GL_NEAREST_MIPMAP_LINEAR,
+    linearMipmapLinear = GL_LINEAR_MIPMAP_LINEAR
+}
+
+/// OpenGL texture wrap functions.
+enum GLTextureWrap
+{
+    clampToEdge = GL_CLAMP_TO_EDGE,
+    mirroredRepeat = GL_MIRRORED_REPEAT,
+    repeat = GL_REPEAT
 }
 
 @nogc nothrow pure @safe unittest
