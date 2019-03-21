@@ -610,6 +610,27 @@ interface OpenGLContext
     TextureID createTexture();
 
     /**
+    bind a texture.
+
+    Params:
+        target = texture target.
+        id = texture ID.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    void bind(GLTextureTarget target, TextureID);
+
+    /**
+    unbind a texture.
+
+    Params:
+        target = texture target.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    void unbindTexture(GLTextureTarget target);
+
+    /**
     delete texture object.
 
     Params:
@@ -878,6 +899,16 @@ class OpenGLContextImpl : OpenGLContext
             glGenTextures(1, &id);
             checkGLError();
             return TextureID(id);
+        }
+
+        void bind(GLTextureTarget target, TextureID id)
+        {
+            glBindTexture(target, cast(GLuint) id);
+        }
+
+        void unbindTexture(GLTextureTarget target)
+        {
+            glBindTexture(target, 0);
         }
 
         void deleteTexture(TextureID id)
