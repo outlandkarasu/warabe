@@ -34,6 +34,7 @@ import bindbc.opengl :
     glClearColor,
     glDeleteBuffers,
     glDeleteProgram,
+    glDeleteTextures,
     glDeleteVertexArrays,
     glDisable,
     glDisableVertexAttribArray,
@@ -43,6 +44,7 @@ import bindbc.opengl :
     glEnable,
     glFlush,
     glGenBuffers,
+    glGenTextures,
     glGetFloatv,
     glGenVertexArrays,
     glGetUniformLocation,
@@ -87,6 +89,9 @@ alias ShaderProgramID = Typedef!(GLuint, GLuint.init, "ShaderProgramID");
 
 /// vertex array ID.
 alias VertexArrayID = Typedef!(GLuint, GLuint.init, "VertexArrayID");
+
+/// texture ID.
+alias TextureID = Typedef!(GLuint, GLuint.init, "TextureID");
 
 /// uniform location.
 alias UniformLocation = Typedef!(GLint, GLint.init, "UniformLocation");
@@ -197,7 +202,6 @@ enum GLBlendMode
 
 struct Viewport
 {
-
     @nogc nothrow pure @safe const
     {
         @property float x() { return values[0]; }
@@ -586,6 +590,26 @@ interface OpenGLContext
     void uniform(UniformLocation location, scope ref const(Mat4) m);
 
     /**
+    create a texture.
+
+    Returns:
+        texture name.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    TextureID createTexture();
+
+    /**
+    delete texture object.
+
+    Params:
+        id = texture ID.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    void deleteTexture(TextureID id);
+
+    /**
     set up OpenGL viewport.
 
     Params:
@@ -836,6 +860,21 @@ class OpenGLContextImpl : OpenGLContext
             glGetFloatv(GL_VIEWPORT, result.values.ptr);
             checkGLError();
             return result;
+        }
+
+        TextureID createTexture()
+        {
+            GLuint id;
+            glGenTextures(1, &id);
+            checkGLError();
+            return TextureID(id);
+        }
+
+        void deleteTexture(TextureID id)
+        {
+            immutable value = cast(GLuint) id;
+            glDeleteTextures(1, &value);
+            checkGLError();
         }
 
         void clearColor(float red, float blue, float green, float alpha)
