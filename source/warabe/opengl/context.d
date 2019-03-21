@@ -19,6 +19,8 @@ import bindbc.opengl :
     GL_SHORT,
     GL_STENCIL_BUFFER_BIT,
     GL_STREAM_DRAW,
+    GL_TEXTURE_2D,
+    GL_TEXTURE_CUBE_MAP,
     GL_TRIANGLE_STRIP,
     GL_TRIANGLE_FAN,
     GL_TRIANGLES,
@@ -26,6 +28,7 @@ import bindbc.opengl :
     GL_UNSIGNED_SHORT,
     GL_VIEWPORT,
     glBindBuffer,
+    glBindTexture,
     glBindVertexArray,
     glBlendFunc,
     glBufferData,
@@ -189,6 +192,13 @@ enum GLBlendMode
     constantAlpha = GL_CONSTANT_ALPHA,
     oneMinusConstantAlpha = GL_ONE_MINUS_CONSTANT_ALPHA,
     srcAlphaSaturate = GL_SRC_ALPHA_SATURATE
+}
+
+/// OpenGL texture target.
+enum GLTextureTarget
+{
+    texture2D = GL_TEXTURE_2D,
+    cubeMap = GL_TEXTURE_CUBE_MAP
 }
 
 @nogc nothrow pure @safe unittest
