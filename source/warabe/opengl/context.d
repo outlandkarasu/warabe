@@ -30,6 +30,12 @@ import bindbc.opengl :
     GL_STREAM_DRAW,
     GL_TEXTURE_2D,
     GL_TEXTURE_CUBE_MAP,
+    GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+    GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+    GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+    GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
+    GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
+    GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
     GL_TEXTURE_MIN_FILTER,
     GL_TEXTURE_MAG_FILTER,
     GL_TEXTURE_WRAP_S,
@@ -208,15 +214,27 @@ enum GLBlendMode
     srcAlphaSaturate = GL_SRC_ALPHA_SATURATE
 }
 
-/// OpenGL texture target.
-enum GLTextureTarget
+/// OpenGL texture parameter target.
+enum GLTextureParameterTarget
 {
     texture2D = GL_TEXTURE_2D,
     cubeMap = GL_TEXTURE_CUBE_MAP
 }
 
-/// OpenGL texture filter functions.
-enum GLTextureFilter
+/// OpenGL texture image target
+enum GLTextureImageTarget
+{
+    texture2D = GL_TEXTURE_2D,
+    cubeMapNegativeX = GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+    cubeMapPositiveX = GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+    cubeMapNegativeY = GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+    cubeMapPositiveY = GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
+    cubeMapNegativeZ = GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
+    cubeMapPositiveZ = GL_TEXTURE_CUBE_MAP_POSITIVE_Z
+}
+
+/// OpenGL texture minify filter functions.
+enum GLTextureMinFilter
 {
     nearest = GL_NEAREST,
     linear = GL_LINEAR,
@@ -224,6 +242,13 @@ enum GLTextureFilter
     linearMipmapNearest = GL_LINEAR_MIPMAP_NEAREST,
     nearestMipmapLinear = GL_NEAREST_MIPMAP_LINEAR,
     linearMipmapLinear = GL_LINEAR_MIPMAP_LINEAR
+}
+
+/// OpenGL texture magnify filter functions.
+enum GLTextureMagFilter
+{
+    nearest = GL_NEAREST,
+    linear = GL_LINEAR
 }
 
 /// OpenGL texture wrap functions.
@@ -651,7 +676,7 @@ interface OpenGLContext
     Throws:
         `OpenGLException` thrown if failed.
     */
-    void bind(GLTextureTarget target, TextureID);
+    void bind(GLTextureParameterTarget target, TextureID);
 
     /**
     unbind a texture.
@@ -661,7 +686,7 @@ interface OpenGLContext
     Throws:
         `OpenGLException` thrown if failed.
     */
-    void unbindTexture(GLTextureTarget target);
+    void unbindTexture(GLTextureParameterTarget target);
 
     /**
     delete texture object.
@@ -682,7 +707,7 @@ interface OpenGLContext
     Throws:
         `OpenGLException` thrown if failed.
     */
-    void textureMinFilter(GLTextureTarget target, GLTextureFilter filter);
+    void textureMinFilter(GLTextureParameterTarget target, GLTextureMinFilter filter);
 
     /**
     set texture magnify filter.
@@ -693,11 +718,7 @@ interface OpenGLContext
     Throws:
         `OpenGLException` thrown if failed.
     */
-    void textureMagFilter(GLTextureTarget target, GLTextureFilter filter)
-    in
-    {
-        assert(filter == GL_NEAREST || filter == GL_LINEAR);
-    }
+    void textureMagFilter(GLTextureParameterTarget target, GLTextureMagFilter filter);
 
     /**
     set texture wrap.
@@ -708,7 +729,7 @@ interface OpenGLContext
     Throws:
         `OpenGLException` thrown if failed.
     */
-    void textureWrapS(GLTextureTarget target, GLTextureWrap wrapType);
+    void textureWrapS(GLTextureParameterTarget target, GLTextureWrap wrapType);
 
     /**
     set texture wrap.
@@ -719,7 +740,7 @@ interface OpenGLContext
     Throws:
         `OpenGLException` thrown if failed.
     */
-    void textureWrapT(GLTextureTarget target, GLTextureWrap wrapType);
+    void textureWrapT(GLTextureParameterTarget target, GLTextureWrap wrapType);
 
     /**
     set up OpenGL viewport.
@@ -982,12 +1003,12 @@ class OpenGLContextImpl : OpenGLContext
             return TextureID(id);
         }
 
-        void bind(GLTextureTarget target, TextureID id)
+        void bind(GLTextureParameterTarget target, TextureID id)
         {
             glBindTexture(target, cast(GLuint) id);
         }
 
-        void unbindTexture(GLTextureTarget target)
+        void unbindTexture(GLTextureParameterTarget target)
         {
             glBindTexture(target, 0);
         }
@@ -999,22 +1020,22 @@ class OpenGLContextImpl : OpenGLContext
             checkGLError();
         }
     
-        void textureMinFilter(GLTextureTarget target, GLTextureFilter filter)
+        void textureMinFilter(GLTextureParameterTarget target, GLTextureMinFilter filter)
         {
             textureParameter(target, GL_TEXTURE_MIN_FILTER, filter);
         }
 
-        void textureMagFilter(GLTextureTarget target, GLTextureFilter filter)
+        void textureMagFilter(GLTextureParameterTarget target, GLTextureMagFilter filter)
         {
             textureParameter(target, GL_TEXTURE_MAG_FILTER, filter);
         }
 
-        void textureWrapS(GLTextureTarget target, GLTextureWrap wrapType)
+        void textureWrapS(GLTextureParameterTarget target, GLTextureWrap wrapType)
         {
             textureParameter(target, GL_TEXTURE_WRAP_S, wrapType);
         }
 
-        void textureWrapT(GLTextureTarget target, GLTextureWrap wrapType)
+        void textureWrapT(GLTextureParameterTarget target, GLTextureWrap wrapType)
         {
             textureParameter(target, GL_TEXTURE_WRAP_T, wrapType);
         }
