@@ -66,6 +66,7 @@ import bindbc.opengl :
     glGetUniformLocation,
     GLint,
     GLSupport,
+    glTexParameteri,
     GLuint,
     glUniformMatrix4fv,
     glUseProgram,
@@ -212,15 +213,6 @@ enum GLTextureTarget
 {
     texture2D = GL_TEXTURE_2D,
     cubeMap = GL_TEXTURE_CUBE_MAP
-}
-
-/// OpenGL texture parameter.
-enum GLTextureParameter
-{
-    minFilter = GL_TEXTURE_MIN_FILTER,
-    magFilter = GL_TEXTURE_MAG_FILTER,
-    wrapS = GL_TEXTURE_WRAP_S,
-    wrapT = GL_TEXTURE_WRAP_T
 }
 
 /// OpenGL texture filter functions.
@@ -682,6 +674,54 @@ interface OpenGLContext
     void deleteTexture(TextureID id);
 
     /**
+    set texture minify filter.
+
+    Params:
+        target = target texture type.
+        filter = texture minify filter type.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    void textureMinFilter(GLTextureTarget target, GLTextureFilter filter);
+
+    /**
+    set texture magnify filter.
+
+    Params:
+        target = target texture type.
+        filter = texture magnify filter type.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    void textureMagFilter(GLTextureTarget target, GLTextureFilter filter)
+    in
+    {
+        assert(filter == GL_NEAREST || filter == GL_LINEAR);
+    }
+
+    /**
+    set texture wrap.
+
+    Params:
+        target = target texture type.
+        wrapType = texture wrap type.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    void textureWrapS(GLTextureTarget target, GLTextureWrap wrapType);
+
+    /**
+    set texture wrap.
+
+    Params:
+        target = target texture type.
+        wrapType = texture wrap type.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    void textureWrapT(GLTextureTarget target, GLTextureWrap wrapType);
+
+    /**
     set up OpenGL viewport.
 
     Params:
@@ -958,6 +998,26 @@ class OpenGLContextImpl : OpenGLContext
             glDeleteTextures(1, &value);
             checkGLError();
         }
+    
+        void textureMinFilter(GLTextureTarget target, GLTextureFilter filter)
+        {
+            textureParameter(target, GL_TEXTURE_MIN_FILTER, filter);
+        }
+
+        void textureMagFilter(GLTextureTarget target, GLTextureFilter filter)
+        {
+            textureParameter(target, GL_TEXTURE_MAG_FILTER, filter);
+        }
+
+        void textureWrapS(GLTextureTarget target, GLTextureWrap wrapType)
+        {
+            textureParameter(target, GL_TEXTURE_WRAP_S, wrapType);
+        }
+
+        void textureWrapT(GLTextureTarget target, GLTextureWrap wrapType)
+        {
+            textureParameter(target, GL_TEXTURE_WRAP_T, wrapType);
+        }
 
         void clearColor(float red, float blue, float green, float alpha)
         {
@@ -1036,6 +1096,12 @@ private:
     void unbindBuffer(T)()
     {
         glBindBuffer(GLBufferTypeEnum!T, 0);
+        checkGLError();
+    }
+
+    void textureParameter(GLenum target, GLenum pname, GLint param)
+    {
+        glTexParameteri(target, pname, param);
         checkGLError();
     }
 }
