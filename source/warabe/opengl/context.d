@@ -5,6 +5,7 @@ import warabe.opengl.exception : checkGLError;
 import warabe.opengl.shader : createShaderProgram;
 
 import bindbc.opengl :
+    GL_ALPHA,
     GL_ARRAY_BUFFER,
     GL_BLEND,
     GL_BYTE,
@@ -25,6 +26,8 @@ import bindbc.opengl :
     GL_NEAREST_MIPMAP_NEAREST,
     GL_POINTS,
     GL_REPEAT,
+    GL_RGB,
+    GL_RGBA,
     GL_SHORT,
     GL_STENCIL_BUFFER_BIT,
     GL_STREAM_DRAW,
@@ -45,6 +48,9 @@ import bindbc.opengl :
     GL_TRIANGLES,
     GL_UNSIGNED_BYTE,
     GL_UNSIGNED_SHORT,
+    GL_UNSIGNED_SHORT_5_6_5,
+    GL_UNSIGNED_SHORT_4_4_4_4,
+    GL_UNSIGNED_SHORT_5_5_5_1,
     GL_VIEWPORT,
     glBindBuffer,
     glBindTexture,
@@ -72,6 +78,7 @@ import bindbc.opengl :
     glGetUniformLocation,
     GLint,
     GLSupport,
+    glTexImage2D,
     glTexParameteri,
     GLuint,
     glUniformMatrix4fv,
@@ -257,6 +264,23 @@ enum GLTextureWrap
     clampToEdge = GL_CLAMP_TO_EDGE,
     mirroredRepeat = GL_MIRRORED_REPEAT,
     repeat = GL_REPEAT
+}
+
+/// OpenGL texture format.
+enum GLTextureFormat
+{
+    alpha = GL_ALPHA,
+    rgb = GL_RGB,
+    rgba = GL_RGBA
+}
+
+/// Texture texel type.
+enum GLTextureType
+{
+    unsignedByte = GL_UNSIGNED_BYTE,
+    unsignedShort565 = GL_UNSIGNED_SHORT_5_6_5,
+    unsignedShort4444 = GL_UNSIGNED_SHORT_4_4_4_4,
+    unsignedShort5551 = GL_UNSIGNED_SHORT_5_5_5_1
 }
 
 @nogc nothrow pure @safe unittest
@@ -743,6 +767,73 @@ interface OpenGLContext
     void textureWrapT(GLTextureParameterTarget target, GLTextureWrap wrapType);
 
     /**
+    specify texture image.
+
+    Params:
+        T = texel type.
+        target = target texture.
+        level = mipmap level.
+        width = texture width.
+        height = texture height.
+        format = texel format.
+        type = texel type.
+    */
+    void textureImage(T)(
+            GLTextureImageTarget target,
+            uint level,
+            uint width,
+            uint height,
+            GLTextureFormat format,
+            GLTextureType type,
+            scope const(T)[] data)
+    in
+    {
+        assert(data.length == width * height);
+    }
+    body
+    {
+        static assert(is(T == ubyte) || is(T == ushort));
+        static assert(!is(T == ubyte) || type == GLTextureType.unsignedByte);
+        static assert(
+            !is(T == ushort)
+            || type == GLTextureType.unsignedShort565
+            || type == GLTextureType.unsignedByte4444
+            || type == GLTextureType.unsignedByte5551);
+        textureImageVoid(target, level, width, height, format, type);
+    }
+
+    /**
+    specify texture image.
+
+    Params:
+        target = target texture.
+        level = mipmap level.
+        width = texture width.
+        height = texture height.
+        format = texel format.
+        type = texel type.
+    */
+    private void textureImageVoid(
+            GLTextureImageTarget target,
+            uint level,
+            uint width,
+            uint height,
+            GLTextureFormat format,
+            GLTextureType type,
+            scope const(void)[] data)
+    in
+    {
+        if (type == GLTextureType.unsignedByte)
+        {
+            assert(data.length == width * height);
+        }
+        else
+        {
+            assert(data.length * 2 == width * height);
+        }
+    }
+
+    /**
     set up OpenGL viewport.
 
     Params:
@@ -1123,6 +1214,19 @@ private:
     void textureParameter(GLenum target, GLenum pname, GLint param)
     {
         glTexParameteri(target, pname, param);
+        checkGLError();
+    }
+
+    void textureImageVoid(
+            GLTextureImageTarget target,
+            uint level,
+            uint width,
+            uint height,
+            GLTextureFormat format,
+            GLTextureType type,
+            scope const(void)[] data)
+    {
+        glTexImage2D(target, level, format, width, height, 0, format, type, data.ptr);
         checkGLError();
     }
 }
