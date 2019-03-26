@@ -24,6 +24,7 @@ import bindbc.opengl :
     GL_NEAREST,
     GL_NEAREST_MIPMAP_LINEAR,
     GL_NEAREST_MIPMAP_NEAREST,
+    GL_PACK_ALIGNMENT,
     GL_POINTS,
     GL_REPEAT,
     GL_RGB,
@@ -46,6 +47,7 @@ import bindbc.opengl :
     GL_TRIANGLE_STRIP,
     GL_TRIANGLE_FAN,
     GL_TRIANGLES,
+    GL_UNPACK_ALIGNMENT,
     GL_UNSIGNED_BYTE,
     GL_UNSIGNED_SHORT,
     GL_UNSIGNED_SHORT_5_6_5,
@@ -77,6 +79,7 @@ import bindbc.opengl :
     glGenVertexArrays,
     glGetUniformLocation,
     GLint,
+    glPixelStorei,
     GLSupport,
     glTexImage2D,
     glTexParameteri,
@@ -281,6 +284,22 @@ enum GLTextureType
     unsignedShort565 = GL_UNSIGNED_SHORT_5_6_5,
     unsignedShort4444 = GL_UNSIGNED_SHORT_4_4_4_4,
     unsignedShort5551 = GL_UNSIGNED_SHORT_5_5_5_1
+}
+
+/// pixel store type.
+enum GLPixelStoreType
+{
+    unpack = GL_UNPACK_ALIGNMENT,
+    pack = GL_PACK_ALIGNMENT,
+}
+
+/// pixel store alignment type.
+enum GLPixelStoreAlignment
+{
+    align1 = 1,
+    align2 = 2,
+    align4 = 4,
+    align8 = 8
 }
 
 @nogc nothrow pure @safe unittest
@@ -723,6 +742,15 @@ interface OpenGLContext
     void deleteTexture(TextureID id);
 
     /**
+    set texture pixel storage alignment.
+
+    Params:
+        type = pixel store type.
+        alignment = pixel row alignment
+    */
+    void pixelStore(GLPixelStoreType type, GLPixelStoreAlignment alignment);
+
+    /**
     set texture minify filter.
 
     Params:
@@ -1108,6 +1136,12 @@ class OpenGLContextImpl : OpenGLContext
         {
             immutable value = cast(GLuint) id;
             glDeleteTextures(1, &value);
+            checkGLError();
+        }
+
+        void pixelStore(GLPixelStoreType type, GLPixelStoreAlignment alignment)
+        {
+            glPixelStorei(type, alignment);
             checkGLError();
         }
     
