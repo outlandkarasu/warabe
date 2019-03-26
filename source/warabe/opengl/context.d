@@ -44,6 +44,15 @@ import bindbc.opengl :
     GL_TEXTURE_MAG_FILTER,
     GL_TEXTURE_WRAP_S,
     GL_TEXTURE_WRAP_T,
+    GL_TEXTURE0,
+    GL_TEXTURE1,
+    GL_TEXTURE2,
+    GL_TEXTURE3,
+    GL_TEXTURE4,
+    GL_TEXTURE5,
+    GL_TEXTURE6,
+    GL_TEXTURE7,
+    GL_TEXTURE8,
     GL_TRIANGLE_STRIP,
     GL_TRIANGLE_FAN,
     GL_TRIANGLES,
@@ -54,6 +63,7 @@ import bindbc.opengl :
     GL_UNSIGNED_SHORT_4_4_4_4,
     GL_UNSIGNED_SHORT_5_5_5_1,
     GL_VIEWPORT,
+    glActiveTexture,
     glBindBuffer,
     glBindTexture,
     glBindVertexArray,
@@ -300,6 +310,20 @@ enum GLPixelStoreAlignment
     align2 = 2,
     align4 = 4,
     align8 = 8
+}
+
+/// texture unit number.
+enum GLTextureUnit
+{
+    texture0 = GL_TEXTURE0,
+    texture1 = GL_TEXTURE1,
+    texture2 = GL_TEXTURE2,
+    texture3 = GL_TEXTURE3,
+    texture4 = GL_TEXTURE4,
+    texture5 = GL_TEXTURE5,
+    texture6 = GL_TEXTURE6,
+    texture7 = GL_TEXTURE7,
+    texture8 = GL_TEXTURE8,
 }
 
 @nogc nothrow pure @safe unittest
@@ -742,11 +766,23 @@ interface OpenGLContext
     void deleteTexture(TextureID id);
 
     /**
+    activate texture.
+
+    Params:
+        texture = activate texture.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    void activeTexture(GLTextureUnit texture);
+
+    /**
     set texture pixel storage alignment.
 
     Params:
         type = pixel store type.
         alignment = pixel row alignment
+    Throws:
+        `OpenGLException` thrown if failed.
     */
     void pixelStore(GLPixelStoreType type, GLPixelStoreAlignment alignment);
 
@@ -805,6 +841,8 @@ interface OpenGLContext
         height = texture height.
         format = texel format.
         type = texel type.
+    Throws:
+        `OpenGLException` thrown if failed.
     */
     void textureImage(T)(
             GLTextureImageTarget target,
@@ -840,6 +878,8 @@ interface OpenGLContext
         height = texture height.
         format = texel format.
         type = texel type.
+    Throws:
+        `OpenGLException` thrown if failed.
     */
     private void textureImageVoid(
             GLTextureImageTarget target,
@@ -1136,6 +1176,12 @@ class OpenGLContextImpl : OpenGLContext
         {
             immutable value = cast(GLuint) id;
             glDeleteTextures(1, &value);
+            checkGLError();
+        }
+
+        void activeTexture(GLTextureUnit texture)
+        {
+            glActiveTexture(texture);
             checkGLError();
         }
 
