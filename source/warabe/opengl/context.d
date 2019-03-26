@@ -5,27 +5,67 @@ import warabe.opengl.exception : checkGLError;
 import warabe.opengl.shader : createShaderProgram;
 
 import bindbc.opengl :
+    GL_ALPHA,
     GL_ARRAY_BUFFER,
     GL_BLEND,
     GL_BYTE,
     GL_COLOR_BUFFER_BIT,
+    GL_CLAMP_TO_EDGE,
     GL_DEPTH_BUFFER_BIT,
     GL_ELEMENT_ARRAY_BUFFER,
     GL_FLOAT,
     GL_LINE_LOOP,
     GL_LINE_STRIP,
+    GL_LINEAR,
+    GL_LINEAR_MIPMAP_LINEAR,
+    GL_LINEAR_MIPMAP_NEAREST,
     GL_LINES,
+    GL_MIRRORED_REPEAT,
+    GL_NEAREST,
+    GL_NEAREST_MIPMAP_LINEAR,
+    GL_NEAREST_MIPMAP_NEAREST,
+    GL_PACK_ALIGNMENT,
     GL_POINTS,
+    GL_REPEAT,
+    GL_RGB,
+    GL_RGBA,
     GL_SHORT,
     GL_STENCIL_BUFFER_BIT,
     GL_STREAM_DRAW,
+    GL_TEXTURE_2D,
+    GL_TEXTURE_CUBE_MAP,
+    GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+    GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+    GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+    GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
+    GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
+    GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
+    GL_TEXTURE_MIN_FILTER,
+    GL_TEXTURE_MAG_FILTER,
+    GL_TEXTURE_WRAP_S,
+    GL_TEXTURE_WRAP_T,
+    GL_TEXTURE0,
+    GL_TEXTURE1,
+    GL_TEXTURE2,
+    GL_TEXTURE3,
+    GL_TEXTURE4,
+    GL_TEXTURE5,
+    GL_TEXTURE6,
+    GL_TEXTURE7,
+    GL_TEXTURE8,
     GL_TRIANGLE_STRIP,
     GL_TRIANGLE_FAN,
     GL_TRIANGLES,
+    GL_UNPACK_ALIGNMENT,
     GL_UNSIGNED_BYTE,
     GL_UNSIGNED_SHORT,
+    GL_UNSIGNED_SHORT_5_6_5,
+    GL_UNSIGNED_SHORT_4_4_4_4,
+    GL_UNSIGNED_SHORT_5_5_5_1,
     GL_VIEWPORT,
+    glActiveTexture,
     glBindBuffer,
+    glBindTexture,
     glBindVertexArray,
     glBlendFunc,
     glBufferData,
@@ -34,6 +74,7 @@ import bindbc.opengl :
     glClearColor,
     glDeleteBuffers,
     glDeleteProgram,
+    glDeleteTextures,
     glDeleteVertexArrays,
     glDisable,
     glDisableVertexAttribArray,
@@ -43,11 +84,15 @@ import bindbc.opengl :
     glEnable,
     glFlush,
     glGenBuffers,
+    glGenTextures,
     glGetFloatv,
     glGenVertexArrays,
     glGetUniformLocation,
     GLint,
+    glPixelStorei,
     GLSupport,
+    glTexImage2D,
+    glTexParameteri,
     GLuint,
     glUniformMatrix4fv,
     glUseProgram,
@@ -87,6 +132,9 @@ alias ShaderProgramID = Typedef!(GLuint, GLuint.init, "ShaderProgramID");
 
 /// vertex array ID.
 alias VertexArrayID = Typedef!(GLuint, GLuint.init, "VertexArrayID");
+
+/// texture ID.
+alias TextureID = Typedef!(GLuint, GLuint.init, "TextureID");
 
 /// uniform location.
 alias UniformLocation = Typedef!(GLint, GLint.init, "UniformLocation");
@@ -186,6 +234,98 @@ enum GLBlendMode
     srcAlphaSaturate = GL_SRC_ALPHA_SATURATE
 }
 
+/// OpenGL texture parameter target.
+enum GLTextureParameterTarget
+{
+    texture2D = GL_TEXTURE_2D,
+    cubeMap = GL_TEXTURE_CUBE_MAP
+}
+
+/// OpenGL texture image target
+enum GLTextureImageTarget
+{
+    texture2D = GL_TEXTURE_2D,
+    cubeMapNegativeX = GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+    cubeMapPositiveX = GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+    cubeMapNegativeY = GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+    cubeMapPositiveY = GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
+    cubeMapNegativeZ = GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
+    cubeMapPositiveZ = GL_TEXTURE_CUBE_MAP_POSITIVE_Z
+}
+
+/// OpenGL texture minify filter functions.
+enum GLTextureMinFilter
+{
+    nearest = GL_NEAREST,
+    linear = GL_LINEAR,
+    nearestMipmapNearest = GL_NEAREST_MIPMAP_NEAREST,
+    linearMipmapNearest = GL_LINEAR_MIPMAP_NEAREST,
+    nearestMipmapLinear = GL_NEAREST_MIPMAP_LINEAR,
+    linearMipmapLinear = GL_LINEAR_MIPMAP_LINEAR
+}
+
+/// OpenGL texture magnify filter functions.
+enum GLTextureMagFilter
+{
+    nearest = GL_NEAREST,
+    linear = GL_LINEAR
+}
+
+/// OpenGL texture wrap functions.
+enum GLTextureWrap
+{
+    clampToEdge = GL_CLAMP_TO_EDGE,
+    mirroredRepeat = GL_MIRRORED_REPEAT,
+    repeat = GL_REPEAT
+}
+
+/// OpenGL texture format.
+enum GLTextureFormat
+{
+    alpha = GL_ALPHA,
+    rgb = GL_RGB,
+    rgba = GL_RGBA
+}
+
+/// Texture texel type.
+enum GLTextureType
+{
+    unsignedByte = GL_UNSIGNED_BYTE,
+    unsignedShort565 = GL_UNSIGNED_SHORT_5_6_5,
+    unsignedShort4444 = GL_UNSIGNED_SHORT_4_4_4_4,
+    unsignedShort5551 = GL_UNSIGNED_SHORT_5_5_5_1
+}
+
+/// pixel store type.
+enum GLPixelStoreType
+{
+    unpack = GL_UNPACK_ALIGNMENT,
+    pack = GL_PACK_ALIGNMENT,
+}
+
+/// pixel store alignment type.
+enum GLPixelStoreAlignment
+{
+    align1 = 1,
+    align2 = 2,
+    align4 = 4,
+    align8 = 8
+}
+
+/// texture unit number.
+enum GLTextureUnit
+{
+    texture0 = GL_TEXTURE0,
+    texture1 = GL_TEXTURE1,
+    texture2 = GL_TEXTURE2,
+    texture3 = GL_TEXTURE3,
+    texture4 = GL_TEXTURE4,
+    texture5 = GL_TEXTURE5,
+    texture6 = GL_TEXTURE6,
+    texture7 = GL_TEXTURE7,
+    texture8 = GL_TEXTURE8,
+}
+
 @nogc nothrow pure @safe unittest
 {
     static assert(GLTypeEnum!byte == GL_BYTE);
@@ -197,7 +337,6 @@ enum GLBlendMode
 
 struct Viewport
 {
-
     @nogc nothrow pure @safe const
     {
         @property float x() { return values[0]; }
@@ -586,6 +725,183 @@ interface OpenGLContext
     void uniform(UniformLocation location, scope ref const(Mat4) m);
 
     /**
+    create a texture.
+
+    Returns:
+        texture name.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    TextureID createTexture();
+
+    /**
+    bind a texture.
+
+    Params:
+        target = texture target.
+        id = texture ID.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    void bind(GLTextureParameterTarget target, TextureID);
+
+    /**
+    unbind a texture.
+
+    Params:
+        target = texture target.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    void unbindTexture(GLTextureParameterTarget target);
+
+    /**
+    delete texture object.
+
+    Params:
+        id = texture ID.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    void deleteTexture(TextureID id);
+
+    /**
+    activate texture.
+
+    Params:
+        texture = activate texture.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    void activeTexture(GLTextureUnit texture);
+
+    /**
+    set texture pixel storage alignment.
+
+    Params:
+        type = pixel store type.
+        alignment = pixel row alignment
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    void pixelStore(GLPixelStoreType type, GLPixelStoreAlignment alignment);
+
+    /**
+    set texture minify filter.
+
+    Params:
+        target = target texture type.
+        filter = texture minify filter type.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    void textureMinFilter(GLTextureParameterTarget target, GLTextureMinFilter filter);
+
+    /**
+    set texture magnify filter.
+
+    Params:
+        target = target texture type.
+        filter = texture magnify filter type.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    void textureMagFilter(GLTextureParameterTarget target, GLTextureMagFilter filter);
+
+    /**
+    set texture wrap.
+
+    Params:
+        target = target texture type.
+        wrapType = texture wrap type.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    void textureWrapS(GLTextureParameterTarget target, GLTextureWrap wrapType);
+
+    /**
+    set texture wrap.
+
+    Params:
+        target = target texture type.
+        wrapType = texture wrap type.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    void textureWrapT(GLTextureParameterTarget target, GLTextureWrap wrapType);
+
+    /**
+    specify texture image.
+
+    Params:
+        T = texel type.
+        target = target texture.
+        level = mipmap level.
+        width = texture width.
+        height = texture height.
+        format = texel format.
+        type = texel type.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    void textureImage(T)(
+            GLTextureImageTarget target,
+            uint level,
+            uint width,
+            uint height,
+            GLTextureFormat format,
+            GLTextureType type,
+            scope const(T)[] data)
+    in
+    {
+        assert(data.length == width * height);
+    }
+    body
+    {
+        static assert(is(T == ubyte) || is(T == ushort));
+        static assert(!is(T == ubyte) || type == GLTextureType.unsignedByte);
+        static assert(
+            !is(T == ushort)
+            || type == GLTextureType.unsignedShort565
+            || type == GLTextureType.unsignedByte4444
+            || type == GLTextureType.unsignedByte5551);
+        textureImageVoid(target, level, width, height, format, type);
+    }
+
+    /**
+    specify texture image.
+
+    Params:
+        target = target texture.
+        level = mipmap level.
+        width = texture width.
+        height = texture height.
+        format = texel format.
+        type = texel type.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    private void textureImageVoid(
+            GLTextureImageTarget target,
+            uint level,
+            uint width,
+            uint height,
+            GLTextureFormat format,
+            GLTextureType type,
+            scope const(void)[] data)
+    in
+    {
+        if (type == GLTextureType.unsignedByte)
+        {
+            assert(data.length == width * height);
+        }
+        else
+        {
+            assert(data.length * 2 == width * height);
+        }
+    }
+
+    /**
     set up OpenGL viewport.
 
     Params:
@@ -838,6 +1154,63 @@ class OpenGLContextImpl : OpenGLContext
             return result;
         }
 
+        TextureID createTexture()
+        {
+            GLuint id;
+            glGenTextures(1, &id);
+            checkGLError();
+            return TextureID(id);
+        }
+
+        void bind(GLTextureParameterTarget target, TextureID id)
+        {
+            glBindTexture(target, cast(GLuint) id);
+        }
+
+        void unbindTexture(GLTextureParameterTarget target)
+        {
+            glBindTexture(target, 0);
+        }
+
+        void deleteTexture(TextureID id)
+        {
+            immutable value = cast(GLuint) id;
+            glDeleteTextures(1, &value);
+            checkGLError();
+        }
+
+        void activeTexture(GLTextureUnit texture)
+        {
+            glActiveTexture(texture);
+            checkGLError();
+        }
+
+        void pixelStore(GLPixelStoreType type, GLPixelStoreAlignment alignment)
+        {
+            glPixelStorei(type, alignment);
+            checkGLError();
+        }
+    
+        void textureMinFilter(GLTextureParameterTarget target, GLTextureMinFilter filter)
+        {
+            textureParameter(target, GL_TEXTURE_MIN_FILTER, filter);
+        }
+
+        void textureMagFilter(GLTextureParameterTarget target, GLTextureMagFilter filter)
+        {
+            textureParameter(target, GL_TEXTURE_MAG_FILTER, filter);
+        }
+
+        void textureWrapS(GLTextureParameterTarget target, GLTextureWrap wrapType)
+        {
+            textureParameter(target, GL_TEXTURE_WRAP_S, wrapType);
+        }
+
+        void textureWrapT(GLTextureParameterTarget target, GLTextureWrap wrapType)
+        {
+            textureParameter(target, GL_TEXTURE_WRAP_T, wrapType);
+        }
+
         void clearColor(float red, float blue, float green, float alpha)
         {
             glClearColor(red, blue, green, alpha);
@@ -915,6 +1288,25 @@ private:
     void unbindBuffer(T)()
     {
         glBindBuffer(GLBufferTypeEnum!T, 0);
+        checkGLError();
+    }
+
+    void textureParameter(GLenum target, GLenum pname, GLint param)
+    {
+        glTexParameteri(target, pname, param);
+        checkGLError();
+    }
+
+    void textureImageVoid(
+            GLTextureImageTarget target,
+            uint level,
+            uint width,
+            uint height,
+            GLTextureFormat format,
+            GLTextureType type,
+            scope const(void)[] data)
+    {
+        glTexImage2D(target, level, format, width, height, 0, format, type, data.ptr);
         checkGLError();
     }
 }
