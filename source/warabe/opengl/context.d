@@ -93,6 +93,7 @@ import bindbc.opengl :
     GLSupport,
     glTexImage2D,
     glTexParameteri,
+    glTexSubImage2D,
     GLuint,
     glUniformMatrix4fv,
     glUseProgram,
@@ -841,6 +842,7 @@ interface OpenGLContext
         height = texture height.
         format = texel format.
         type = texel type.
+        data = texture data.
     Throws:
         `OpenGLException` thrown if failed.
     */
@@ -869,6 +871,49 @@ interface OpenGLContext
     }
 
     /**
+    specify texture sub image.
+
+    Params:
+        target = target texture.
+        level = mipmap level.
+        offsetX = X axis offset.
+        offsetY = Y axis offset.
+        width = texture width.
+        height = texture height.
+        format = texel format.
+        type = texel type.
+        data = texture data.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    private void textureImage(T)(
+            GLTextureImageTarget target,
+            uint level,
+            uint offsetX,
+            uint offsetY,
+            uint width,
+            uint height,
+            GLTextureFormat format,
+            GLTextureType type,
+            scope const(T)[] data)
+    in
+    {
+        assert(data.length == width * height);
+    }
+    body
+    {
+        static assert(is(T == ubyte) || is(T == ushort));
+        static assert(!is(T == ubyte) || type == GLTextureType.unsignedByte);
+        static assert(
+            !is(T == ushort)
+            || type == GLTextureType.unsignedShort565
+            || type == GLTextureType.unsignedByte4444
+            || type == GLTextureType.unsignedByte5551);
+        textureImageVoid(
+            target, level, offsetX, offsetY, width, height, format, type);
+    }
+
+    /**
     specify texture image.
 
     Params:
@@ -884,6 +929,43 @@ interface OpenGLContext
     private void textureImageVoid(
             GLTextureImageTarget target,
             uint level,
+            uint width,
+            uint height,
+            GLTextureFormat format,
+            GLTextureType type,
+            scope const(void)[] data)
+    in
+    {
+        if (type == GLTextureType.unsignedByte)
+        {
+            assert(data.length == width * height);
+        }
+        else
+        {
+            assert(data.length * 2 == width * height);
+        }
+    }
+
+    /**
+    specify texture sub image.
+
+    Params:
+        target = target texture.
+        level = mipmap level.
+        offsetX = X axis offset.
+        offsetY = Y axis offset.
+        width = texture width.
+        height = texture height.
+        format = texel format.
+        type = texel type.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    private void textureImageVoid(
+            GLTextureImageTarget target,
+            uint level,
+            uint offsetX,
+            uint offsetY,
             uint width,
             uint height,
             GLTextureFormat format,
@@ -1306,7 +1388,40 @@ private:
             GLTextureType type,
             scope const(void)[] data)
     {
-        glTexImage2D(target, level, format, width, height, 0, format, type, data.ptr);
+        glTexImage2D(
+            target,
+            level,
+            format,
+            width,
+            height,
+            0,
+            format,
+            type,
+            data.ptr);
+        checkGLError();
+    }
+
+    void textureImageVoid(
+            GLTextureImageTarget target,
+            uint level,
+            uint offsetX,
+            uint offsetY,
+            uint width,
+            uint height,
+            GLTextureFormat format,
+            GLTextureType type,
+            scope const(void)[] data)
+    {
+        glTexImage2D(
+            target,
+            level,
+            offsetX,
+            offsetY,
+            width,
+            height,
+            format,
+            type,
+            data.ptr);
         checkGLError();
     }
 }
