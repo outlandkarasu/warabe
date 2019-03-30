@@ -16,6 +16,7 @@ import warabe.opengl :
     Mat4,
     OpenGLContext,
     ShaderProgramID,
+    TextureID,
     UniformLocation,
     VertexArrayID,
     VerticesID;
@@ -70,6 +71,14 @@ struct PrimitiveBuffer(Vertex, uint verticesCount, uint indicesCount)
         context_.deleteShaderProgram(program_);
     }
 
+    void setTexture(TextureID texture)
+    {
+    }
+
+    void clearTexture()
+    {
+    }
+
     void add(
             scope const(Vertex)[] vertices,
             scope const(uint)[] indices)
@@ -80,22 +89,15 @@ struct PrimitiveBuffer(Vertex, uint verticesCount, uint indicesCount)
     }
     body
     {
-        foreach (ref e; buffers_)
+        if (buffers_.length == 0 || !buffers_[$ - 1].hasCapacity)
         {
-            if (e.hasCapacity)
-            {
-                e.add(context_, vertices, indices);
-                return;
-            }
-        }
-
-        auto entry = BufferEntry(
+            buffers_.length += 1;
+            buffers_[$ - 1] = BufferEntry(
                 context_,
+                texture_,
                 capacity_);
-        scope (failure) entry.destroy(context_);
-
-        buffers_ ~= entry;
-        entry.add(context_, vertices, indices);
+        }
+        buffers_[$ - 1].add(context_, vertices, indices);
     }
 
     void draw(ref const(Mat4) viewportMatrix)
@@ -117,7 +119,6 @@ struct PrimitiveBuffer(Vertex, uint verticesCount, uint indicesCount)
         }
     }
 
-
 private:
 
     alias BufferEntry = PrimitiveBufferEntry!(
@@ -125,6 +126,7 @@ private:
 
     OpenGLContext context_;
     ShaderProgramID program_;
+    TextureID texture_;
     size_t capacity_;
     UniformLocation viewportMatrixLocation_;
     BufferEntry[] buffers_;
@@ -137,6 +139,7 @@ struct PrimitiveBufferEntry(Vertex, uint verticesCount, uint indicesCount)
 {
     this(
         scope OpenGLContext context,
+        TextureID texture,
         size_t capacity)
     in
     {
@@ -297,6 +300,7 @@ private:
     VertexArrayID vao_;
     VerticesID vertices_;
     IndicesID indices_;
+    TextureID textureID_;
     size_t capacity_;
     size_t count_;
     size_t verticesEnd_;
