@@ -12,6 +12,8 @@ import warabe.color : Color;
 
 import warabe.opengl :
     GLDrawMode,
+    GLTextureUnit,
+    GLTextureParameterTarget,
     IndicesID,
     Mat4,
     OpenGLContext,
@@ -73,10 +75,20 @@ struct PrimitiveBuffer(Vertex, uint verticesCount, uint indicesCount)
 
     void setTexture(TextureID texture)
     {
+        if (texture_ != texture && buffers_.length > 0)
+        {
+            texture_ = texture;
+            addBuffer();
+        }
+        else
+        {
+            texture_ = texture;
+        }
     }
 
     void clearTexture()
     {
+        setTexture(TextureID(0));
     }
 
     void add(
@@ -91,11 +103,7 @@ struct PrimitiveBuffer(Vertex, uint verticesCount, uint indicesCount)
     {
         if (buffers_.length == 0 || !buffers_[$ - 1].hasCapacity)
         {
-            buffers_.length += 1;
-            buffers_[$ - 1] = BufferEntry(
-                context_,
-                texture_,
-                capacity_);
+            addBuffer();
         }
         buffers_[$ - 1].add(context_, vertices, indices);
     }
@@ -123,6 +131,19 @@ private:
 
     alias BufferEntry = PrimitiveBufferEntry!(
             Vertex, verticesCount, indicesCount);
+
+    void addBuffer()
+    out
+    {
+        assert(buffers_.length > 0);
+        assert(buffers_[$ - 1].hasCapacity);
+    }
+    body
+    {
+        buffers_.length += 1;
+        scope(failure) buffers_.length -= 1;
+        buffers_[$ - 1] = BufferEntry(context_, texture_, capacity_);
+    }
 
     OpenGLContext context_;
     ShaderProgramID program_;
@@ -159,6 +180,7 @@ struct PrimitiveBufferEntry(Vertex, uint verticesCount, uint indicesCount)
         this.vao_ = context.createVAO();
         scope (failure) context.deleteVAO(this.vao_);
 
+        this.texture_ = texture;
         this.capacity_ = capacity;
     }
 
@@ -294,13 +316,17 @@ private:
         context.bind(indices_);
         scope (exit) context.unbindIndices();
 
+        context.activeTexture(GLTextureUnit.texture0);
+        context.bind(GLTextureParameterTarget.texture2D, texture_);
+        scope (exit) context.unbindTexture(GLTextureParameterTarget.texture2D);
+
         context.unbindVAO();
     }
 
     VertexArrayID vao_;
     VerticesID vertices_;
     IndicesID indices_;
-    TextureID textureID_;
+    TextureID texture_;
     size_t capacity_;
     size_t count_;
     size_t verticesEnd_;
