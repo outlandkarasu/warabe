@@ -854,20 +854,24 @@ interface OpenGLContext
             GLTextureFormat format,
             GLTextureType type,
             scope const(T)[] data)
+    if (is(T == ubyte) || is(T == ushort))
     in
     {
         assert(data.length == width * height);
+        static if(is(T == ubyte))
+        {
+            assert(type == GLTextureType.unsignedByte);
+        }
+        else
+        {
+            assert(type == GLTextureType.unsignedShort565
+                || type == GLTextureType.unsignedShort4444
+                || type == GLTextureType.unsignedShort5551);
+        }
     }
     body
     {
-        static assert(is(T == ubyte) || is(T == ushort));
-        static assert(!is(T == ubyte) || type == GLTextureType.unsignedByte);
-        static assert(
-            !is(T == ushort)
-            || type == GLTextureType.unsignedShort565
-            || type == GLTextureType.unsignedByte4444
-            || type == GLTextureType.unsignedByte5551);
-        textureImageVoid(target, level, width, height, format, type);
+        textureImageVoid(target, level, width, height, format, type, data);
     }
 
     /**
@@ -896,21 +900,25 @@ interface OpenGLContext
             GLTextureFormat format,
             GLTextureType type,
             scope const(T)[] data)
+    if (is(T == ubyte) || is(T == ushort))
     in
     {
         assert(data.length == width * height);
+        static if(is(T == ubyte))
+        {
+            assert(type == GLTextureType.unsignedByte);
+        }
+        else
+        {
+            assert(type == GLTextureType.unsignedShort565
+                || type == GLTextureType.unsignedShort4444
+                || type == GLTextureType.unsignedShort5551);
+        }
     }
     body
     {
-        static assert(is(T == ubyte) || is(T == ushort));
-        static assert(!is(T == ubyte) || type == GLTextureType.unsignedByte);
-        static assert(
-            !is(T == ushort)
-            || type == GLTextureType.unsignedShort565
-            || type == GLTextureType.unsignedByte4444
-            || type == GLTextureType.unsignedByte5551);
         textureImageVoid(
-            target, level, offsetX, offsetY, width, height, format, type);
+            target, level, offsetX, offsetY, width, height, format, type, data);
     }
 
     /**

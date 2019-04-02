@@ -9,8 +9,9 @@ import warabe.opengl :
     Mat4,
     OpenGLContext,
     ShaderProgramID;
+import warabe.renderer.ellipse : EllipseBuffer;
+import warabe.renderer.font_renderer : FontRenderer;
 import warabe.renderer.rectangle : RectangleBuffer;
-import warabe.renderer.ellipse: EllipseBuffer;
 
 /**
 screen renderer.
@@ -34,6 +35,7 @@ struct Renderer
         this.context_ = context;
         this.rectangleBuffer_ = RectangleBuffer(context);
         this.ellipseBuffer_ = EllipseBuffer(context);
+        this.fontRenderer_ = FontRenderer(context, "./fonts/ipam.ttc", 32, 0);
     }
 
     /**
@@ -90,6 +92,7 @@ private:
     Mat4 viewportMatrix_;
     RectangleBuffer rectangleBuffer_;
     EllipseBuffer ellipseBuffer_;
+    FontRenderer fontRenderer_;
 
     void calculateViewportMatrix(scope out Mat4 dest)
     {
