@@ -12,6 +12,7 @@ import warabe.coordinates :
 import warabe.opengl.context :
     GLTextureFormat,
     GLTextureImageTarget,
+    GLTextureParameterTarget,
     GLTextureType,
     OpenGLContext,
     TextureID;
@@ -45,6 +46,11 @@ struct TextureAreaAllocator
         this.areaAllocator_ = AreaAllocator(Size(size_, size_));
         this.texture_ = context.createTexture();
         this.context_ = context;
+
+        // allocate texture pixel data.
+        context_.bind(GLTextureParameterTarget.texture2D, texture_);
+        scope(exit) context_.unbindTexture(GLTextureParameterTarget.texture2D);
+
         context_.allocateTexture!ubyte(
             GLTextureImageTarget.texture2D,
             0,
@@ -94,6 +100,9 @@ struct TextureAreaAllocator
 
         auto data = cast(const(ubyte)[])
             surface.pixels[0 .. surface.h * surface.pitch];
+
+        context_.bind(GLTextureParameterTarget.texture2D, texture_);
+        scope(exit) context_.unbindTexture(GLTextureParameterTarget.texture2D);
         context_.textureImage(
             GLTextureImageTarget.texture2D,
             0,
