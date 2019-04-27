@@ -883,6 +883,46 @@ interface OpenGLContext
     }
 
     /**
+    allocate texture image.
+
+    Params:
+        target = target texture.
+        level = mipmap level.
+        width = texture width.
+        height = texture height.
+        format = texel format.
+        type = texel type.
+        data = texture data.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    void allocateTexture(T)(
+            GLTextureImageTarget target,
+            uint level,
+            uint width,
+            uint height,
+            GLTextureFormat format,
+            GLTextureType type)
+    if (is(T == ubyte) || is(T == ushort))
+    in
+    {
+        static if(is(T == ubyte))
+        {
+            assert(type == GLTextureType.unsignedByte);
+        }
+        else
+        {
+            assert(type == GLTextureType.unsignedShort565
+                || type == GLTextureType.unsignedShort4444
+                || type == GLTextureType.unsignedShort5551);
+        }
+    }
+    body
+    {
+        textureImageVoid(target, level, width, height, format, type, null);
+    }
+
+    /**
     specify texture sub image.
 
     Params:

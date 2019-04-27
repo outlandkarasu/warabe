@@ -3,12 +3,116 @@ module warabe.renderer.area_allocator;
 import std.typecons : Nullable, nullable;
 import std.container : DList;
 
+import bindbc.sdl : SDL_Surface;
+
 import warabe.coordinates :
     Point,
     Rectangle,
     Size;
+import warabe.opengl.context :
+    GLTextureFormat,
+    GLTextureImageTarget,
+    GLTextureType,
+    OpenGLContext,
+    TextureID;
 
 package:
+
+/**
+ *  Texture area allocator.
+ */
+struct TextureAreaAllocator
+{
+    @disable this();
+    @disable this(this);
+
+    /**
+    initialize allocator.
+
+    Params:
+        context = OpenGL context.
+    Throws:
+        OpenGLException if failed.
+    */
+    this(OpenGLContext context)
+    in
+    {
+        assert(context !is null);
+    }
+    body
+    {
+        this.size_ = context.getMaxTextureSize();
+        this.areaAllocator_ = AreaAllocator(Size(size_, size_));
+        this.texture_ = context.createTexture();
+        this.context_ = context;
+        context_.allocateTexture!ubyte(
+            GLTextureImageTarget.texture2D,
+            0,
+            size_,
+            size_,
+            GLTextureFormat.rgba,
+            GLTextureType.unsignedByte);
+    }
+
+    ~this()
+    {
+        if (texture_)
+        {
+            context_.deleteTexture(texture_);
+            texture_ = TextureID(0);
+        }
+    }
+
+    /**
+    Returns:
+        max texture size.
+    */
+    nothrow @property pure @safe uint maxSize() const
+    {
+        return size_;
+    }
+
+    bool add(scope const(SDL_Surface)* surface)
+    in
+    {
+        assert(surface !is null);
+        assert(surface.format.BytesPerPixel == 4);
+        assert(surface.w * 4 == surface.pitch);
+    }
+    body
+    {
+        if (surface.w > size_ || surface.h > size_)
+        {
+            return false;
+        }
+
+        auto position = areaAllocator_.add(Size(surface.w, surface.h));
+        if (position.isNull)
+        {
+            return false;
+        }
+
+        auto data = cast(const(ubyte)[])
+            surface.pixels[0 .. surface.h * surface.pitch];
+        context_.textureImage(
+            GLTextureImageTarget.texture2D,
+            0,
+            position.x,
+            position.y,
+            surface.w,
+            surface.h,
+            GLTextureFormat.rgba,
+            GLTextureType.unsignedByte,
+            data);
+        return true;
+    }
+
+private:
+    uint size_;
+    OpenGLContext context_;
+    AreaAllocator areaAllocator_;
+    TextureID texture_;
+}
 
 /**
  *  Rectangle area allocator.

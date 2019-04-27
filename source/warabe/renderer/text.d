@@ -149,8 +149,6 @@ class FontRenderer
         this.font_ = ttfEnforce(TTF_OpenFontIndex(
             toStringz(fontPath), pointSize, index));
         this.allocator_ = Allocator();
-        import std.stdio : writefln;
-        writefln("construct");
     }
 
     /**
@@ -162,8 +160,6 @@ class FontRenderer
         {
             TTF_CloseFont(font_);
             font_ = null;
-            import std.stdio : writefln;
-            writefln("destruct");
         }
     }
 
