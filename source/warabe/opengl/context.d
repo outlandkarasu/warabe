@@ -1436,7 +1436,7 @@ private:
             GLTextureType type,
             scope const(void)[] data)
     {
-        glTexImage2D(
+        glTexSubImage2D(
             target,
             level,
             offsetX,
