@@ -1,7 +1,7 @@
 module warabe.renderer.renderer;
 
 import warabe.color : Color;
-import warabe.coodinates : Rectangle;
+import warabe.coordinates : Rectangle;
 import warabe.lina.matrix :
     move,
     scale;
@@ -10,7 +10,7 @@ import warabe.opengl :
     OpenGLContext,
     ShaderProgramID;
 import warabe.renderer.ellipse : EllipseBuffer;
-import warabe.renderer.font_renderer : FontRenderer;
+import warabe.renderer.text: TextBuffer;
 import warabe.renderer.rectangle : RectangleBuffer;
 
 /**
@@ -35,7 +35,7 @@ struct Renderer
         this.context_ = context;
         this.rectangleBuffer_ = RectangleBuffer(context);
         this.ellipseBuffer_ = EllipseBuffer(context);
-        this.fontRenderer_ = FontRenderer(context, "./fonts/ipam.ttc", 32, 0);
+        this.textBuffer_ = TextBuffer(context);
     }
 
     /**
@@ -92,7 +92,7 @@ private:
     Mat4 viewportMatrix_;
     RectangleBuffer rectangleBuffer_;
     EllipseBuffer ellipseBuffer_;
-    FontRenderer fontRenderer_;
+    TextBuffer textBuffer_;
 
     void calculateViewportMatrix(scope out Mat4 dest)
     {

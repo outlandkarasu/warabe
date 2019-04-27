@@ -3,7 +3,7 @@ import warabe.application :
     ApplicationParameters,
     run;
 
-import warabe.coodinates : Rectangle;
+import warabe.coordinates : Rectangle;
 import warabe.color: Color;
 
 import warabe.event :
