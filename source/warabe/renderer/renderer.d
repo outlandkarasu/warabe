@@ -1,7 +1,9 @@
 module warabe.renderer.renderer;
 
 import warabe.color : Color;
-import warabe.coordinates : Rectangle;
+import warabe.coordinates :
+    Point,
+    Rectangle;
 import warabe.lina.matrix :
     move,
     scale;
@@ -52,6 +54,29 @@ struct Renderer
             auto ref const(Color) color)
     {
         rectangleBuffer_.add(rect, color);
+        return this;
+    }
+
+    /**
+    render a text.
+
+    Params:
+        text = render text.
+        position = render position.
+        color = text color.
+        fontPath = font file path.
+        point = font points.
+        index = font face index.
+    */
+    ref auto text()(
+        scope const(char)[] text,
+        auto ref const(Point) position,
+        auto ref const(Color) color,
+        scope const(char)[] fontPath,
+        int point,
+        long index = 0)
+    {
+        textBuffer_.add(text, position, color, fontPath, point, index);
         return this;
     }
 

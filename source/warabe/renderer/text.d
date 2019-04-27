@@ -30,6 +30,8 @@ import warabe.opengl :
 import warabe.color : Color;
 import warabe.coordinates : Point;
 
+import warabe.renderer.area_allocator : AreaAllocator;
+
 import warabe.renderer.buffer :
     PrimitiveBuffer,
     VertexAttributeType;
@@ -56,6 +58,15 @@ struct TextBuffer
                 CAPACITY);
     }
 
+    ~this()
+    {
+        foreach (ref font; fonts_.values)
+        {
+            destroy(font);
+        }
+        fonts_.clear();
+    }
+
     void add()(
         scope const(char)[] text,
         auto ref const(Point) position,
@@ -64,8 +75,10 @@ struct TextBuffer
         int point,
         long index)
     {
-        immutable key = FontKey(fontPath, point, index);
-        fonts_.require(key, new FontRenderer(fontPath, point, index));
+        auto key = FontKey(fontPath, point, index);
+        auto fontRenderer = fonts_.require(key, new FontRenderer(fontPath, point, index));
+        fontRenderer.duringRender(text, (scope surface) {
+        });
     }
 
     void draw(ref const(Mat4) viewportMatrix)
@@ -136,6 +149,22 @@ class FontRenderer
         this.font_ = ttfEnforce(TTF_OpenFontIndex(
             toStringz(fontPath), pointSize, index));
         this.allocator_ = Allocator();
+        import std.stdio : writefln;
+        writefln("construct");
+    }
+
+    /**
+    destruct font renderer.
+    */
+    ~this()
+    {
+        if (font_)
+        {
+            TTF_CloseFont(font_);
+            font_ = null;
+            import std.stdio : writefln;
+            writefln("destruct");
+        }
     }
 
     /**
@@ -217,15 +246,6 @@ class FontRenderer
                 GLTextureType.unsignedByte,
                 data);
         });
-    }
-
-    /**
-    destruct font renderer.
-    */
-    ~this()
-    {
-        TTF_CloseFont(font_);
-        font_ = null;
     }
 
 private:
