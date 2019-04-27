@@ -8,6 +8,8 @@ import warabe.coordinates :
     Rectangle,
     Size;
 
+package:
+
 /**
  *  Rectangle area allocator.
  */
