@@ -1,10 +1,34 @@
 module warabe.renderer.text;
 
-import warabe.color : Color;
+import std.exception : enforce;
+import std.string : fromStringz, toStringz;
 
+import bindbc.sdl :
+    SDL_Color,
+    SDL_FreeSurface,
+    SDL_Surface;
+
+import bindbc.sdl.ttf :
+    TTF_CloseFont,
+    TTF_Font,
+    TTF_GetError,
+    TTF_OpenFontIndex,
+    TTF_RenderUTF8_Blended;
+
+import std.experimental.allocator.mallocator : Mallocator;
+import std.experimental.allocator : TypedAllocator;
+
+import warabe.exception : WarabeException;
 import warabe.opengl :
+    GLTextureFormat,
+    GLTextureImageTarget,
+    GLTextureType,
     Mat4,
-    OpenGLContext;
+    OpenGLContext,
+    TextureID;
+
+import warabe.color : Color;
+import warabe.coordinates : Point;
 
 import warabe.renderer.buffer :
     PrimitiveBuffer,
@@ -18,7 +42,7 @@ struct TextBuffer
     @disable this();
     @disable this(this);
 
-    this(OpenGLContext context)
+    this(scope OpenGLContext context)
     in
     {
         assert(context !is null);
@@ -27,30 +51,21 @@ struct TextBuffer
     {
         buffer_ = Buffer(
                 context,
-                import("ellipse.vert"),
-                import("ellipse.frag"),
+                import("plane.vert"),
+                import("plane.frag"),
                 CAPACITY);
     }
 
-    void add()(auto ref const(Rectangle) rect, auto ref const(Color) color)
+    void add()(
+        scope const(char)[] text,
+        auto ref const(Point) position,
+        auto ref const(Color) color,
+        scope const(char)[] fontPath,
+        int point,
+        long index)
     {
-        // append rect vertices.
-        scope immutable(ubyte)[4] colorArray = [
-            color.red, color.green, color.blue, color.alpha];
-        scope immutable(Vertex)[VERTICES_PER_TEXT] vertices = [
-            { [rect.left, rect.top, 0.0f], colorArray, [0, 0] },
-            { [rect.right, rect.top, 0.0f], colorArray, [ubyte.max, 0] },
-            { [rect.right, rect.bottom, 0.0f], colorArray, [ubyte.max, ubyte.max] },
-            { [rect.left, rect.bottom, 0.0f], colorArray, [0, ubyte.max] },
-        ];
-
-        // append rect indices.
-        scope immutable(uint)[INDICES_PER_TEXT] indices = [
-            0, 1, 2,
-            0, 2, 3,
-        ];
-
-        buffer_.add(vertices, indices);
+        immutable key = FontKey(fontPath, point, index);
+        fonts_.require(key, new FontRenderer(fontPath, point, index));
     }
 
     void draw(ref const(Mat4) viewportMatrix)
@@ -71,6 +86,13 @@ private:
         INDICES_PER_TEXT = 6,
     }
 
+    struct FontKey
+    {
+        const(char)[] fontPath;
+        int point;
+        long index;
+    }
+
     struct Vertex
     {
         float[3] position;
@@ -79,12 +101,177 @@ private:
         ubyte[4] color;
 
         @(VertexAttributeType.normalized)
-        ubyte[2] localPosition;
+        ushort[2] uv;
     }
 
     alias Buffer = PrimitiveBuffer!(
             Vertex, VERTICES_PER_TEXT, INDICES_PER_TEXT);
 
     Buffer buffer_;
+    FontRenderer[FontKey] fonts_;
+}
+
+private:
+
+///
+class FontRenderer
+{
+    /**
+    construct font renderer. 
+
+    Params:
+        fontPath = font file path.
+        pointSize = render point size.
+        index = font face index.
+    */
+    this(scope const(char)[] fontPath,
+        int pointSize,
+        long index)
+    in
+    {
+        assert(fontPath !is null);
+    }
+    body
+    {
+        this.font_ = ttfEnforce(TTF_OpenFontIndex(
+            toStringz(fontPath), pointSize, index));
+        this.allocator_ = Allocator();
+    }
+
+    /**
+    render text and call delegater.
+
+    Params:
+        text = render text.
+        dg = surface action.
+    */
+    void duringRender(
+            scope const(char)[] text,
+            scope void delegate(scope SDL_Surface*) dg)
+    in
+    {
+        assert(text !is null);
+        assert(dg !is null);
+    }
+    body
+    {
+        immutable color = SDL_Color(0, 0, 0);
+        auto surface = ttfEnforce(TTF_RenderUTF8_Blended(font_, toStringz(text), color));
+        scope(exit) SDL_FreeSurface(surface);
+
+        assert(surface.format.BytesPerPixel == 4);
+        assert(surface.pitch % 4 == 0);
+
+        dg(surface);
+    }
+
+    /**
+    render text to texture.
+
+    Params:
+        text = render text.
+        texture = render target texture.
+        offsetX = render offset X.
+        offsetY = render offset Y.
+    */
+    void renderToTexture(
+            scope const(char)[] text,
+            scope OpenGLContext context,
+            TextureID texture,
+            int offsetX,
+            int offsetY)
+    in
+    {
+        assert(text !is null);
+        assert(cast(int) texture);
+    }
+    body
+    {
+        duringRender(text, (scope surface)
+        {
+            immutable dataPitch = ((surface.w + 3) / 4) * 4;
+            immutable dataSize = dataPitch * surface.h;
+            auto data = allocator_.makeArray!ubyte(dataSize);
+            scope(exit) allocator_.dispose(data);
+
+            foreach (row; 0 .. surface.h)
+            {
+                immutable rowBegin = (row * surface.pitch) / 4;
+                immutable rowEnd = rowBegin + surface.w;
+                const rowPixels = (cast(const(uint)*)surface.pixels)[rowBegin .. rowEnd];
+                foreach(col, pixel; rowPixels)
+                {
+                    immutable alpha = (pixel & surface.format.Amask) >> surface.format.Ashift;
+                    data[row * dataPitch + col] = cast(ubyte) alpha;
+                }
+            }
+
+            context.textureImage(
+                GLTextureImageTarget.texture2D,
+                0,
+                offsetX,
+                offsetY,
+                surface.w,
+                surface.h,
+                GLTextureFormat.alpha,
+                GLTextureType.unsignedByte,
+                data);
+        });
+    }
+
+    /**
+    destruct font renderer.
+    */
+    ~this()
+    {
+        TTF_CloseFont(font_);
+        font_ = null;
+    }
+
+private:
+
+    alias Allocator = TypedAllocator!Mallocator;
+
+    Allocator allocator_;
+    TTF_Font* font_;
+}
+
+private:
+
+/**
+SDL_ttf related exception.
+*/
+class TTFException : WarabeException
+{
+    /// constructor from super class.
+    pure nothrow @nogc @safe this(
+            string msg,
+            string file = __FILE__,
+            size_t line = __LINE__,
+            Throwable nextInChain = null)
+    {
+        super(msg, file, line, nextInChain);
+    }
+}
+
+/**
+Returns:
+    last SDL_ttf error string.
+*/
+nothrow @nogc @system const(char)[] ttfGetError()
+{
+    return fromStringz(TTF_GetError());
+}
+
+/// enforce function for SDL_ttf.
+T ttfEnforce(T)(T value, lazy const(char)[] msg, string file = __FILE__, size_t line = __LINE__)
+{
+    return enforce!TTFException(value, msg, file, line);
+}
+
+/// ditto
+T ttfEnforce(T)(T value, string file = __FILE__, size_t line = __LINE__)
+{
+    return ttfEnforce(value, ttfGetError, file, line);
 }
 

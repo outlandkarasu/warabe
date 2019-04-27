@@ -91,7 +91,7 @@ private:
 unittest
 {
     import std.typecons : BlackHole;
-    import warabe.coodinates : Point, Size;
+    import warabe.coordinates : Point, Size;
 
     scope context = new BlackHole!OpenGLContext;
     scope buffer = RectangleBuffer(context);
