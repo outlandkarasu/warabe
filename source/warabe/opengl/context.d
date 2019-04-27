@@ -24,6 +24,7 @@ import bindbc.opengl :
     GL_NEAREST,
     GL_NEAREST_MIPMAP_LINEAR,
     GL_NEAREST_MIPMAP_NEAREST,
+    GL_MAX_TEXTURE_SIZE,
     GL_PACK_ALIGNMENT,
     GL_POINTS,
     GL_REPEAT,
@@ -86,6 +87,7 @@ import bindbc.opengl :
     glGenBuffers,
     glGenTextures,
     glGetFloatv,
+    glGetIntegerv,
     glGenVertexArrays,
     glGetUniformLocation,
     GLint,
@@ -726,6 +728,12 @@ interface OpenGLContext
     void uniform(UniformLocation location, scope ref const(Mat4) m);
 
     /**
+    Returns:
+        max texture size.
+    */
+    uint getMaxTextureSize();
+
+    /**
     create a texture.
 
     Returns:
@@ -1240,6 +1248,14 @@ class OpenGLContextImpl : OpenGLContext
         {
             Viewport result = void;
             glGetFloatv(GL_VIEWPORT, result.values.ptr);
+            checkGLError();
+            return result;
+        }
+
+        uint getMaxTextureSize()
+        {
+            GLint result = void;
+            glGetIntegerv(GL_MAX_TEXTURE_SIZE, &result);
             checkGLError();
             return result;
         }
