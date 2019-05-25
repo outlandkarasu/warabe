@@ -3,5 +3,5 @@ Warabe root package.
 */
 module warabe;
 
-public import warabe.screen;
+public import warabe.window;
 

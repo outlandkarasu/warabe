@@ -1,12 +1,24 @@
 /**
-Screen module.
+Window module.
 */
-module warabe.screen;
+module warabe.window;
+
+import warabe.primitives : Size;
 
 /**
-Screen interface.
+Window interface.
 */
-interface Screen
+interface Window
 {
+}
+
+/**
+Window factory interface.
+*/
+interface WindowFactory
+{
+    Window create(
+            scope const(char)[] title,
+            scope ref const(Size) size);
 }
 

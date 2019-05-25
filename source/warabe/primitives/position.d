@@ -1,7 +1,7 @@
 /**
 Position module.  
 */
-module warabe.position;
+module warabe.primitives.position;
 
 /**
 Position structure.
