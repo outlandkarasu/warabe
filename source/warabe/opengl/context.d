@@ -299,6 +299,27 @@ enum GLTextureType
     unsignedShort5551 = GL_UNSIGNED_SHORT_5_5_5_1
 }
 
+/// get pixel bytes.
+private uint getPixelBytes(GLTextureFormat format, GLTextureType type)
+{
+    if (type == GLTextureType.unsignedByte)
+    {
+        final switch (format)
+        {
+        case GLTextureFormat.alpha:
+            return 1;
+        case GLTextureFormat.rgb:
+            return 3;
+        case GLTextureFormat.rgba:
+            return 4;
+        }
+    }
+    else
+    {
+        return 2;
+    }
+}
+
 /// pixel store type.
 enum GLPixelStoreType
 {
@@ -992,14 +1013,8 @@ interface OpenGLContext
             scope const(void)[] data)
     in
     {
-        if (type == GLTextureType.unsignedByte)
-        {
-            assert(data.length == width * height);
-        }
-        else
-        {
-            assert(data.length * 2 == width * height);
-        }
+        immutable pixelBytes = getPixelBytes(format, type);
+        assert(data.length == 0 || data.length == width * height * pixelBytes);
     }
 
     /**
@@ -1029,14 +1044,8 @@ interface OpenGLContext
             scope const(void)[] data)
     in
     {
-        if (type == GLTextureType.unsignedByte)
-        {
-            assert(data.length == width * height);
-        }
-        else
-        {
-            assert(data.length * 2 == width * height);
-        }
+        immutable pixelBytes = getPixelBytes(format, type);
+        assert(data.length == 0 || data.length == width * height * pixelBytes);
     }
 
     /**

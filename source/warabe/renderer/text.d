@@ -30,7 +30,7 @@ import warabe.opengl :
 import warabe.color : Color;
 import warabe.coordinates : Point;
 
-import warabe.renderer.area_allocator : AreaAllocator;
+import warabe.renderer.area_allocator : TextureAreaAllocator;
 
 import warabe.renderer.buffer :
     PrimitiveBuffer,
@@ -65,19 +65,47 @@ struct TextBuffer
             destroy(font);
         }
         fonts_.clear();
+
+        foreach (ref texture; textures_)
+        {
+            destroy(texture);
+            texture = null;
+        }
+        textures_.length = 0;
     }
 
     void add()(
-        scope const(char)[] text,
-        auto ref const(Point) position,
-        auto ref const(Color) color,
-        scope const(char)[] fontPath,
-        int point,
-        long index)
+            OpenGLContext context,
+            scope const(char)[] text,
+            auto scope ref const(Point) position,
+            auto scope ref const(Color) color,
+            scope const(char)[] fontPath,
+            int point,
+            long index)
+    in
     {
+        assert(fontPath.length > 0);
+    }
+    body
+    {
+        if (text.length == 0)
+        {
+            return;
+        }
+
         auto key = FontKey(fontPath, point, index);
         auto fontRenderer = fonts_.require(key, new FontRenderer(fontPath, point, index));
         fontRenderer.duringRender(text, (scope surface) {
+            if (textures_.length == 0)
+            {
+                textures_ ~= new TextureAreaAllocator(context);
+            }
+
+            immutable maxSize = textures_[0].maxSize;
+            if (surface.w > maxSize || surface.h > maxSize)
+            {
+                return;
+            }
         });
     }
 
@@ -122,6 +150,7 @@ private:
 
     Buffer buffer_;
     FontRenderer[FontKey] fonts_;
+    TextureAreaAllocator*[] textures_;
 }
 
 private:
