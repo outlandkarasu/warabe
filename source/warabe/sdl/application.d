@@ -3,8 +3,11 @@ SDL application.
 */
 module warabe.sdl.application;
 
+import warabe.application : Application;
 import warabe.window : WindowFactory;
+
 import warabe.sdl.exception : SDLException;
+import warabe.sdl.event: SDLEventLoop;
 import warabe.sdl.window : SDLWindowFactory;
 
 import bindbc.sdl :
@@ -22,13 +25,15 @@ Params:
 Throws:
     SDLException if failed.
 */
-void runApplication(scope void delegate(scope WindowFactory) mainFunction)
+void runApplication(scope void delegate(Application) mainFunction)
 {
     immutable loadedVersion = initializeSDL();
     scope(exit) unloadSDL();
 
-    scope windowFactory = new SDLWindowFactory();
-    mainFunction(windowFactory);
+    auto windowFactory = new SDLWindowFactory();
+    auto eventLoop = new SDLEventLoop();
+    auto application = Application(windowFactory, eventLoop);
+    mainFunction(application);
 }
 
 private:
