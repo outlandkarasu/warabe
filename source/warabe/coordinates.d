@@ -1,4 +1,4 @@
-module warabe.coodinates;
+module warabe.coordinates;
 
 ///
 struct Point

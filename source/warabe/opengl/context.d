@@ -24,6 +24,7 @@ import bindbc.opengl :
     GL_NEAREST,
     GL_NEAREST_MIPMAP_LINEAR,
     GL_NEAREST_MIPMAP_NEAREST,
+    GL_MAX_TEXTURE_SIZE,
     GL_PACK_ALIGNMENT,
     GL_POINTS,
     GL_REPEAT,
@@ -86,6 +87,7 @@ import bindbc.opengl :
     glGenBuffers,
     glGenTextures,
     glGetFloatv,
+    glGetIntegerv,
     glGenVertexArrays,
     glGetUniformLocation,
     GLint,
@@ -295,6 +297,27 @@ enum GLTextureType
     unsignedShort565 = GL_UNSIGNED_SHORT_5_6_5,
     unsignedShort4444 = GL_UNSIGNED_SHORT_4_4_4_4,
     unsignedShort5551 = GL_UNSIGNED_SHORT_5_5_5_1
+}
+
+/// get pixel bytes.
+private uint getPixelBytes(GLTextureFormat format, GLTextureType type)
+{
+    if (type == GLTextureType.unsignedByte)
+    {
+        final switch (format)
+        {
+        case GLTextureFormat.alpha:
+            return 1;
+        case GLTextureFormat.rgb:
+            return 3;
+        case GLTextureFormat.rgba:
+            return 4;
+        }
+    }
+    else
+    {
+        return 2;
+    }
 }
 
 /// pixel store type.
@@ -726,6 +749,12 @@ interface OpenGLContext
     void uniform(UniformLocation location, scope ref const(Mat4) m);
 
     /**
+    Returns:
+        max texture size.
+    */
+    uint getMaxTextureSize();
+
+    /**
     create a texture.
 
     Returns:
@@ -854,20 +883,64 @@ interface OpenGLContext
             GLTextureFormat format,
             GLTextureType type,
             scope const(T)[] data)
+    if (is(T == ubyte) || is(T == ushort))
     in
     {
         assert(data.length == width * height);
+        static if(is(T == ubyte))
+        {
+            assert(type == GLTextureType.unsignedByte);
+        }
+        else
+        {
+            assert(type == GLTextureType.unsignedShort565
+                || type == GLTextureType.unsignedShort4444
+                || type == GLTextureType.unsignedShort5551);
+        }
     }
     body
     {
-        static assert(is(T == ubyte) || is(T == ushort));
-        static assert(!is(T == ubyte) || type == GLTextureType.unsignedByte);
-        static assert(
-            !is(T == ushort)
-            || type == GLTextureType.unsignedShort565
-            || type == GLTextureType.unsignedByte4444
-            || type == GLTextureType.unsignedByte5551);
-        textureImageVoid(target, level, width, height, format, type);
+        textureImageVoid(target, level, width, height, format, type, data);
+    }
+
+    /**
+    allocate texture image.
+
+    Params:
+        target = target texture.
+        level = mipmap level.
+        width = texture width.
+        height = texture height.
+        format = texel format.
+        type = texel type.
+        data = texture data.
+    Throws:
+        `OpenGLException` thrown if failed.
+    */
+    void allocateTexture(T)(
+            GLTextureImageTarget target,
+            uint level,
+            uint width,
+            uint height,
+            GLTextureFormat format,
+            GLTextureType type)
+    if (is(T == ubyte) || is(T == ushort))
+    in
+    {
+        static if(is(T == ubyte))
+        {
+            assert(type == GLTextureType.unsignedByte);
+        }
+        else
+        {
+            assert(type == GLTextureType.unsignedShort565
+                || type == GLTextureType.unsignedShort4444
+                || type == GLTextureType.unsignedShort5551);
+        }
+    }
+    body
+    {
+        textureImageVoid(target, level, width, height, format, type, null);
     }
 
     /**
@@ -896,21 +969,25 @@ interface OpenGLContext
             GLTextureFormat format,
             GLTextureType type,
             scope const(T)[] data)
+    if (is(T == ubyte) || is(T == ushort))
     in
     {
         assert(data.length == width * height);
+        static if(is(T == ubyte))
+        {
+            assert(type == GLTextureType.unsignedByte);
+        }
+        else
+        {
+            assert(type == GLTextureType.unsignedShort565
+                || type == GLTextureType.unsignedShort4444
+                || type == GLTextureType.unsignedShort5551);
+        }
     }
     body
     {
-        static assert(is(T == ubyte) || is(T == ushort));
-        static assert(!is(T == ubyte) || type == GLTextureType.unsignedByte);
-        static assert(
-            !is(T == ushort)
-            || type == GLTextureType.unsignedShort565
-            || type == GLTextureType.unsignedByte4444
-            || type == GLTextureType.unsignedByte5551);
         textureImageVoid(
-            target, level, offsetX, offsetY, width, height, format, type);
+            target, level, offsetX, offsetY, width, height, format, type, data);
     }
 
     /**
@@ -936,14 +1013,8 @@ interface OpenGLContext
             scope const(void)[] data)
     in
     {
-        if (type == GLTextureType.unsignedByte)
-        {
-            assert(data.length == width * height);
-        }
-        else
-        {
-            assert(data.length * 2 == width * height);
-        }
+        immutable pixelBytes = getPixelBytes(format, type);
+        assert(data.length == 0 || data.length == width * height * pixelBytes);
     }
 
     /**
@@ -973,14 +1044,8 @@ interface OpenGLContext
             scope const(void)[] data)
     in
     {
-        if (type == GLTextureType.unsignedByte)
-        {
-            assert(data.length == width * height);
-        }
-        else
-        {
-            assert(data.length * 2 == width * height);
-        }
+        immutable pixelBytes = getPixelBytes(format, type);
+        assert(data.length == 0 || data.length == width * height * pixelBytes);
     }
 
     /**
@@ -1236,6 +1301,14 @@ class OpenGLContextImpl : OpenGLContext
             return result;
         }
 
+        uint getMaxTextureSize()
+        {
+            GLint result = void;
+            glGetIntegerv(GL_MAX_TEXTURE_SIZE, &result);
+            checkGLError();
+            return result;
+        }
+
         TextureID createTexture()
         {
             GLuint id;
@@ -1412,7 +1485,7 @@ private:
             GLTextureType type,
             scope const(void)[] data)
     {
-        glTexImage2D(
+        glTexSubImage2D(
             target,
             level,
             offsetX,

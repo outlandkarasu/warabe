@@ -1,7 +1,9 @@
 module warabe.renderer.renderer;
 
 import warabe.color : Color;
-import warabe.coodinates : Rectangle;
+import warabe.coordinates :
+    Point,
+    Rectangle;
 import warabe.lina.matrix :
     move,
     scale;
@@ -9,8 +11,9 @@ import warabe.opengl :
     Mat4,
     OpenGLContext,
     ShaderProgramID;
+import warabe.renderer.ellipse : EllipseBuffer;
+import warabe.renderer.text: TextBuffer;
 import warabe.renderer.rectangle : RectangleBuffer;
-import warabe.renderer.ellipse: EllipseBuffer;
 
 /**
 screen renderer.
@@ -34,6 +37,7 @@ struct Renderer
         this.context_ = context;
         this.rectangleBuffer_ = RectangleBuffer(context);
         this.ellipseBuffer_ = EllipseBuffer(context);
+        this.textBuffer_ = TextBuffer(context);
     }
 
     /**
@@ -47,9 +51,39 @@ struct Renderer
     **/
     ref auto rectangle()(
             auto ref const(Rectangle) rect,
-            auto ref const(Color) color)
+            auto ref const(Color) color) return
     {
         rectangleBuffer_.add(rect, color);
+        return this;
+    }
+
+    /**
+    render a text.
+
+    Params:
+        text = render text.
+        position = render position.
+        color = text color.
+        fontPath = font file path.
+        point = font points.
+        index = font face index.
+    */
+    ref auto text()(
+        scope const(char)[] text,
+        auto ref const(Point) position,
+        auto ref const(Color) color,
+        scope const(char)[] fontPath,
+        int point,
+        long index = 0) return
+    {
+        textBuffer_.add(
+                context_,
+                text,
+                position,
+                color,
+                fontPath,
+                point,
+                index);
         return this;
     }
 
@@ -64,7 +98,7 @@ struct Renderer
     **/
     ref auto ellipse()(
             auto ref const(Rectangle) bounding,
-            auto ref const(Color) color)
+            auto ref const(Color) color) return
     {
         ellipseBuffer_.add(bounding, color);
         return this;
@@ -82,6 +116,9 @@ struct Renderer
 
         ellipseBuffer_.draw(viewportMatrix);
         ellipseBuffer_.reset();
+
+        textBuffer_.draw(viewportMatrix);
+        textBuffer_.reset();
     }
 
 private:
@@ -90,6 +127,7 @@ private:
     Mat4 viewportMatrix_;
     RectangleBuffer rectangleBuffer_;
     EllipseBuffer ellipseBuffer_;
+    TextBuffer textBuffer_;
 
     void calculateViewportMatrix(scope out Mat4 dest)
     {

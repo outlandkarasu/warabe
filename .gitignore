@@ -14,4 +14,4 @@ warabe-test-*
 *.obj
 *.lst
 *.swp
-
+fonts/

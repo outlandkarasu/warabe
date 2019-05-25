@@ -1,7 +1,7 @@
 module warabe.renderer.rectangle;
 
 import warabe.color : Color;
-import warabe.coodinates : Rectangle;
+import warabe.coordinates : Rectangle;
 
 import warabe.opengl :
     Mat4,
@@ -91,7 +91,7 @@ private:
 unittest
 {
     import std.typecons : BlackHole;
-    import warabe.coodinates : Point, Size;
+    import warabe.coordinates : Point, Size;
 
     scope context = new BlackHole!OpenGLContext;
     scope buffer = RectangleBuffer(context);
