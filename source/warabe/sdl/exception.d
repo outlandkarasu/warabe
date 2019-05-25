@@ -40,7 +40,7 @@ class SDLException : Exception
  *      result value.
  *  Throws: SdlException if result has error.
  */
-pure T enforceSdl(T, string file = __FILE__, ulong line = __LINE__)(T value)
+T enforceSDL(T, string file = __FILE__, ulong line = __LINE__)(T value)
 {
     static if (is(T == bool))
     {
@@ -61,7 +61,7 @@ pure T enforceSdl(T, string file = __FILE__, ulong line = __LINE__)(T value)
 
     if(hasError)
     {
-        throw new SdlException(fromStringz(SDL_GetError()).idup, file, line);
+        throw new SDLException(fromStringz(SDL_GetError()).idup, file, line);
     }
     return value;
 }
