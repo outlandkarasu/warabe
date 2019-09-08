@@ -4,12 +4,12 @@
 		"outland.karasu@gmail.com"
 	],
 	"description": "Warabe",
-	"copyright": "Copyright © 2018, outland.karasu@gmail.com",
+	"copyright": "Copyright © 2019, outland.karasu@gmail.com",
 	"license": "BSL-1.0",
         "stringImportPaths": ["shader/"],
         "dependencies": {
-                "bindbc-sdl": "0.6.0",
-                "bindbc-opengl": "0.5.0"
+                "bindbc-sdl": "0.13.0",
+                "bindbc-opengl": "0.9.0"
         },
-        "versions": ["GL_33", "BindSDL_TTF"]
+        "versions": ["GL_33"]
 }
