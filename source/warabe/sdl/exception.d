@@ -1,12 +1,14 @@
 /**
-Warabe exception module.
+Warabe SDL exception.
 */
-module warabe.exception;
-  
+module warabe.sdl.exception;
+
+import warabe.exception : WarabeException;
+
 /**
-Warabe exception base class.
+SDL related exception.
 */
-abstract class WarabeException : Exception
+class SdlException : WarabeException
 {
     /**
     construct by message.
