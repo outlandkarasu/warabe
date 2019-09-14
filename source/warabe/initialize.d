@@ -5,7 +5,7 @@ module warabe.initialize;
 
 import std.traits : isCallable;
 
-import warabe.sdl.initialize : usingSdl;
+import warabe.sdl.load : usingSdl;
 
 /**
 initialize Warabe and using it.

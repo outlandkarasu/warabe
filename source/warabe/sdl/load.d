@@ -1,7 +1,7 @@
 /**
 SDL load function module.
 */
-module warabe.sdl.initialize;
+module warabe.sdl.load;
 
 import std.traits : isCallable;
 
