@@ -9,7 +9,7 @@ import warabe.sdl :
     enforceSdl,
     init,
     quit,
-    SdlInit,
+    Init,
     usingSdl;
 
 /**
@@ -21,7 +21,7 @@ Params:
 void usingWarabe(alias F)() if (isCallable!F)
 {
     usingSdl!({
-        enforceSdl(init(SdlInit.everything));
+        enforceSdl(init(Init.everything));
         scope(exit) quit();
 
         F();

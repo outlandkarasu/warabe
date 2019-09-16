@@ -9,7 +9,7 @@ import std.traits : Unqual;
 import bindbc.sdl : SDL_GetError;
 
 import warabe.exception : WarabeException;
-import warabe.sdl.types: SdlResult;
+import warabe.sdl.types : Result;
 
 /**
 SDL related exception.
@@ -86,7 +86,7 @@ Returns:
 @nogc nothrow pure @safe
 bool isSdlFailed(T)(T result)
 {
-    static if (is(Unqual!T == SdlResult))
+    static if (is(Unqual!T == Result))
     {
         return result != 0;
     }
@@ -103,9 +103,9 @@ bool isSdlFailed(T)(T result)
 ///
 @nogc nothrow pure @safe unittest
 {
-    assert(!isSdlFailed(SdlResult(0)));
-    assert( isSdlFailed(SdlResult(-1)));
-    assert( isSdlFailed(SdlResult(1)));
+    assert(!isSdlFailed(Result(0)));
+    assert( isSdlFailed(Result(-1)));
+    assert( isSdlFailed(Result(1)));
 
     string value = "abc";
     assert( isSdlFailed(null));

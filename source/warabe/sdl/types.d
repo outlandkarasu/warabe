@@ -8,5 +8,5 @@ import std.typecons : Typedef;
 /**
 SDL result type.
 */
-alias SdlResult = Typedef!(uint, uint.init, "SdlResult");
+alias Result = Typedef!(uint, uint.init, "warabe.sdl.types.Result");
 

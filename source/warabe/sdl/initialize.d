@@ -20,12 +20,12 @@ import bindbc.sdl :
 
 import bindbc.sdl : Uint32;
 
-import warabe.sdl.types : SdlResult;
+import warabe.sdl.types : Result;
 
 /**
 SDL initialize flags.
 */
-enum SdlInit : Uint32
+enum Init : Uint32
 {
     nothing = 0,
     timer = SDL_INIT_TIMER,
@@ -46,9 +46,9 @@ Params:
 Returns:
     initialized status.
 */
-SdlResult init(SdlInit flags) @nogc nothrow
+Result init(Init flags) @nogc nothrow
 {
-    return SdlResult(SDL_Init(flags));
+    return Result(SDL_Init(flags));
 }
 
 /**
@@ -58,3 +58,4 @@ void quit() @nogc nothrow
 {
     SDL_Quit();
 }
+
