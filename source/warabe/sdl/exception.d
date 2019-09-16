@@ -4,10 +4,12 @@ Warabe SDL exception.
 module warabe.sdl.exception;
 
 import std.string : fromStringz;
+import std.traits : Unqual;
 
 import bindbc.sdl : SDL_GetError;
 
 import warabe.exception : WarabeException;
+import warabe.sdl.types: SdlResult;
 
 /**
 SDL related exception.
@@ -44,10 +46,30 @@ Throws:
 */
 T enforceSdl(string file = __FILE__, size_t line = __LINE__, T)(T result)
 {
-
-    if (failed)
+    if (isSdlFailed(result))
     {
-        throwSdlError(file, line);
+        immutable message = fromStringz(SDL_GetError()).idup;
+        throw new SdlException(message, file, line);
+    }
+    return result;
+}
+
+///
+@system unittest
+{
+    try
+    {
+        import warabe.sdl : usingSdl;
+        immutable result = SdlResult(1);
+        usingSdl!({ enforceSdl(result); });
+    }
+    catch(SdlException e)
+    {
+        // expected exception.
+    }
+    catch(Throwable e)
+    {
+        assert(false, "unexpected exception" ~ e.toString());
     }
 }
 
@@ -64,7 +86,7 @@ Returns:
 @nogc nothrow pure @safe
 bool isSdlFailed(T)(T result)
 {
-    static if (is(T == int))
+    static if (is(Unqual!T == SdlResult))
     {
         return result != 0;
     }
@@ -81,26 +103,12 @@ bool isSdlFailed(T)(T result)
 ///
 @nogc nothrow pure @safe unittest
 {
-    assert(!isSdlFailed(0));
-    assert( isSdlFailed(-1));
-    assert( isSdlFailed(1));
+    assert(!isSdlFailed(SdlResult(0)));
+    assert( isSdlFailed(SdlResult(-1)));
+    assert( isSdlFailed(SdlResult(1)));
 
     string value = "abc";
     assert( isSdlFailed(null));
     assert(!isSdlFailed(&value[0]));
-}
-
-/**
-throw SDL last error.
-
-Params:
-    file = file name.
-    line = source line number.
-Throws: SdlException
-*/
-void throwSdlError(string file = __FILE__, size_t line = __LINE__)
-{
-    immutable message = fromStringz(SDL_GetError()).idup;
-    throw new SdlException(message, file, line);
 }
 
