@@ -5,7 +5,12 @@ module warabe.initialize;
 
 import std.traits : isCallable;
 
-import warabe.sdl.load : usingSdl;
+import warabe.sdl :
+    enforceSdl,
+    init,
+    quit,
+    SdlInit,
+    usingSdl;
 
 /**
 initialize Warabe and using it.
@@ -15,6 +20,11 @@ Params:
 */
 void usingWarabe(alias F)() if (isCallable!F)
 {
-    usingSdl!F;
+    usingSdl!({
+        enforceSdl(init(SdlInit.everything));
+        scope(exit) quit();
+
+        F();
+    });
 }
 
