@@ -25,7 +25,7 @@ import warabe.sdl.types : Result;
 /**
 SDL initialize flags.
 */
-enum Init : Uint32
+enum InitFlags : Uint32
 {
     nothing = 0,
     timer = SDL_INIT_TIMER,
@@ -46,7 +46,7 @@ Params:
 Returns:
     initialized status.
 */
-Result init(Init flags) @nogc nothrow
+Result init(InitFlags flags) @nogc nothrow
 {
     return Result(SDL_Init(flags));
 }
