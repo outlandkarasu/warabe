@@ -22,14 +22,12 @@ alias JoyDeviceEvent = sdl.SDL_JoyDeviceEvent;
 alias ControllerAxisEvent = sdl.SDL_ControllerAxisEvent;
 alias ControllerButtonEvent = sdl.SDL_ControllerButtonEvent;
 alias ControllerDeviceEvent = sdl.SDL_ControllerDeviceEvent;
-alias AudioDeviceEvent = sdl.SDL_AudioDeviceEvent;
 alias QuitEvent = sdl.SDL_QuitEvent;
 alias UserEvent = sdl.SDL_UserEvent;
 alias SysWMEvent = sdl.SDL_SysWMEvent;
 alias TouchFingerEvent = sdl.SDL_TouchFingerEvent;
 alias MultiGestureEvent = sdl.SDL_MultiGestureEvent;
 alias DollarGestureEvent = sdl.SDL_DollarGestureEvent;
-alias DropEvent = sdl.SDL_DropEvent;
 
 /**
 SDL event type enum.
@@ -82,9 +80,6 @@ enum EventType : sdl.SDL_EventType
     multiGesture = sdl.SDL_MULTIGESTURE,
 
     clipBoardUpdate = sdl.SDL_CLIPBOARDUPDATE,
-
-    dropFile = sdl.SDL_DROPFILE,
-    dropText = sdl.SDL_DROPTEXT,
 
     userEvent = sdl.SDL_USEREVENT,
     lastEvent = sdl.SDL_LASTEVENT,

@@ -60,7 +60,7 @@ T enforceSdl(string file = __FILE__, size_t line = __LINE__, T)(T result)
     try
     {
         import warabe.sdl : usingSdl;
-        immutable result = SdlResult(1);
+        immutable result = Result(1);
         usingSdl!({ enforceSdl(result); });
     }
     catch(SdlException e)
