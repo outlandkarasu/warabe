@@ -15,13 +15,12 @@ load SDL library and using it.
 Params:
     F = function using SDL.
 */
-void usingSDL(alias F)() if (isCallable!F)
+void usingSDL(alias F)() if(isCallable!F)
 {
     loadSDL();
+    scope(exit) unloadSDL();
 
     F();
-
-    scope(exit) unloadSDL();
 }
 
 private:

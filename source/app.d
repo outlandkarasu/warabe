@@ -7,6 +7,8 @@ import std.string : toStringz;
 
 import warabe : usingWarabe;
 
+import warabe.opengl : usingOpenGL;
+
 import warabe.sdl : delay, pollEvent, Event, EventType;
 
 import warabe.sdl : enforceSDL;
@@ -15,6 +17,15 @@ import warabe.sdl :
     destroyWindow,
     WindowFlags,
     WindowPos;
+import warabe.sdl.opengl :
+    GLAttr,
+    GLCreateContext,
+    GLDeleteContext,
+    GLProfile,
+    GLSetAttribute,
+    GLSetSwapInterval,
+    GLSwapInterval,
+    GLSwapWindow;
 
 /**
 Main function.
@@ -22,19 +33,30 @@ Main function.
 void main()
 {
     usingWarabe!({
+        GLSetAttribute(GLAttr.contextMajorVersion, 2);
+        GLSetAttribute(GLAttr.contextMinorVersion, 0);
+        GLSetAttribute(GLAttr.contextProfileMask, GLProfile.core);
+        GLSetSwapInterval(GLSwapInterval.adaptiveVsync);
+
         auto window = createWindow(
             toStringz(""),
             WindowPos.centered,
             WindowPos.centered,
             640,
             480,
-            WindowFlags.shown).enforceSDL;
+            WindowFlags.shown | WindowFlags.openGL).enforceSDL;
         scope(exit) destroyWindow(window);
 
-        while (processEvent())
-        {
-            delay(16);
-        }
+        auto glContext = GLCreateContext(window);
+        scope(exit) GLDeleteContext(glContext);
+
+        usingOpenGL!({
+            while (processEvent())
+            {
+                delay(16);
+                GLSwapWindow(window);
+            }
+        });
     });
 }
 
