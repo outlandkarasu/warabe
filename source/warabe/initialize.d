@@ -6,11 +6,11 @@ module warabe.initialize;
 import std.traits : isCallable;
 
 import warabe.sdl :
-    enforceSdl,
+    enforceSDL,
     init,
     quit,
     InitFlags,
-    usingSdl;
+    usingSDL;
 
 /**
 initialize Warabe and using it.
@@ -20,8 +20,8 @@ Params:
 */
 void usingWarabe(alias F)() if (isCallable!F)
 {
-    usingSdl!({
-        enforceSdl(init(InitFlags.everything));
+    usingSDL!({
+        enforceSDL(init(InitFlags.everything));
         scope(exit) quit();
 
         F();

@@ -9,7 +9,7 @@ import warabe : usingWarabe;
 
 import warabe.sdl : delay, pollEvent, Event, EventType;
 
-import warabe.sdl : enforceSdl;
+import warabe.sdl : enforceSDL;
 import warabe.sdl :
     createWindow,
     destroyWindow,
@@ -28,7 +28,7 @@ void main()
             WindowPos.centered,
             640,
             480,
-            WindowFlags.shown).enforceSdl;
+            WindowFlags.shown).enforceSDL;
         scope(exit) destroyWindow(window);
 
         while (processEvent())

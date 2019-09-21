@@ -7,7 +7,7 @@ import std.traits : isCallable;
 
 static import bindbc.sdl;
 
-import warabe.sdl.exception : SdlException;
+import warabe.sdl.exception : SDLException;
 
 /**
 load SDL library and using it.
@@ -15,13 +15,13 @@ load SDL library and using it.
 Params:
     F = function using SDL.
 */
-void usingSdl(alias F)() if (isCallable!F)
+void usingSDL(alias F)() if (isCallable!F)
 {
-    loadSdl();
+    loadSDL();
 
     F();
 
-    scope(exit) unloadSdl();
+    scope(exit) unloadSDL();
 }
 
 private:
@@ -29,7 +29,7 @@ private:
 /**
 load SDL library.
 */
-void loadSdl() @system
+void loadSDL() @system
 {
     immutable loadedVersion = bindbc.sdl.loadSDL();
     if (loadedVersion != bindbc.sdl.sdlSupport)
@@ -44,14 +44,14 @@ void loadSdl() @system
             message = "SDL2 bad library.";
         }
 
-        throw new SdlException(message);
+        throw new SDLException(message);
     }
 }
 
 /**
 unload SDL library.
 */
-void unloadSdl() @system
+void unloadSDL() @system
 {
     bindbc.sdl.unloadSDL();
 }
