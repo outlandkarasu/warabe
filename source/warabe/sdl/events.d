@@ -4,6 +4,7 @@ Events module.
 module warabe.sdl.events;
 
 import sdl = bindbc.sdl;
+import bindbc.sdl : SDL_PollEvent;
 
 alias Event = sdl.SDL_Event;
 alias CommonEvent = sdl.SDL_CommonEvent;
@@ -83,5 +84,29 @@ enum EventType : sdl.SDL_EventType
 
     userEvent = sdl.SDL_USEREVENT,
     lastEvent = sdl.SDL_LASTEVENT,
+}
+
+/**
+poll event.
+
+Params:
+    event = filled event
+Returns:
+    true if there is a pending event.
+*/
+bool pollEvent(out Event event) @nogc nothrow
+{
+    return SDL_PollEvent(&event) == 1;
+}
+
+/**
+poll event.
+
+Returns:
+    true if there is a pending event.
+*/
+bool pollEvent() @nogc nothrow
+{
+    return SDL_PollEvent(null) == 1;
 }
 

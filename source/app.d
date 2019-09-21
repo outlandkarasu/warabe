@@ -6,11 +6,13 @@ module app;
 import std.string : toStringz;
 
 import warabe : usingWarabe;
+
+import warabe.sdl : delay, pollEvent, Event, EventType;
+
+import warabe.sdl : enforceSdl;
 import warabe.sdl :
     createWindow,
-    delay,
     destroyWindow,
-    enforceSdl,
     WindowFlags,
     WindowPos;
 
@@ -29,7 +31,29 @@ void main()
             WindowFlags.shown).enforceSdl;
         scope(exit) destroyWindow(window);
 
-        delay(5000);
+        while (processEvent())
+        {
+            delay(16);
+        }
     });
+}
+
+bool processEvent() @nogc nothrow
+{
+    Event event;
+    if (!pollEvent(event))
+    {
+        return true;
+    }
+
+    switch (event.type)
+    {
+    case EventType.quit:
+        return false;
+    default:
+        break;
+    }
+
+    return true;
 }
 
