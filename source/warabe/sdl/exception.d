@@ -9,7 +9,7 @@ import std.traits : Unqual;
 import bindbc.sdl : SDL_GetError;
 
 import warabe.exception : WarabeException;
-import warabe.sdl.types: SdlResult;
+import warabe.sdl.types : Result;
 
 /**
 SDL related exception.
@@ -60,7 +60,7 @@ T enforceSdl(string file = __FILE__, size_t line = __LINE__, T)(T result)
     try
     {
         import warabe.sdl : usingSdl;
-        immutable result = SdlResult(1);
+        immutable result = Result(1);
         usingSdl!({ enforceSdl(result); });
     }
     catch(SdlException e)
@@ -86,7 +86,7 @@ Returns:
 @nogc nothrow pure @safe
 bool isSdlFailed(T)(T result)
 {
-    static if (is(Unqual!T == SdlResult))
+    static if (is(Unqual!T == Result))
     {
         return result != 0;
     }
@@ -103,9 +103,9 @@ bool isSdlFailed(T)(T result)
 ///
 @nogc nothrow pure @safe unittest
 {
-    assert(!isSdlFailed(SdlResult(0)));
-    assert( isSdlFailed(SdlResult(-1)));
-    assert( isSdlFailed(SdlResult(1)));
+    assert(!isSdlFailed(Result(0)));
+    assert( isSdlFailed(Result(-1)));
+    assert( isSdlFailed(Result(1)));
 
     string value = "abc";
     assert( isSdlFailed(null));
