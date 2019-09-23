@@ -7,7 +7,9 @@ import std.string : toStringz;
 
 import warabe : usingWarabe;
 
-import warabe.opengl : usingOpenGL;
+import warabe.opengl :
+    checkGLError,
+    usingOpenGL;
 
 import warabe.sdl : delay, pollEvent, Event, EventType;
 
@@ -55,6 +57,7 @@ void main()
             {
                 delay(16);
                 GLSwapWindow(window);
+                checkGLError();
             }
         });
     });
