@@ -911,20 +911,88 @@ ref auto rotateX(E, R)(auto ref Matrix!(E, 4, 4) m, R rad) if(isNumeric!R)
     immutable sinRad = sin(rad);
     immutable cosRad = cos(rad);
     m[1, 1] = cosRad;
-    m[1, 2] = -sinRad;
-    m[2, 1] = sinRad;
+    m[1, 2] = sinRad;
+    m[2, 1] = -sinRad;
     m[2, 2] = cosRad;
     return m;
 }
 
 ///
-@safe unittest
+pure @safe unittest
 {
     import std.math : approxEqual, PI, sqrt;
 
-    immutable m = Matrix!(float, 4, 4)().rotateX(-(PI / 3.0f));
+    immutable m = Matrix!(float, 4, 4)().rotateX(PI / 3.0f);
     immutable v = Vector!(float, 4)([1.0f, 0.0f, 1.0f, 1.0f]);
     immutable rotated = m * v;
-    assert(approxEqual(rotated[], [1.0f, sqrt(3.0f) / 2.0f, 1.0f / 2.0f, 1.0f]), rotated.toString());
+    assert(approxEqual(rotated[], [1.0f, sqrt(3.0f) / 2.0f, 1.0f / 2.0f, 1.0f]));
+}
+
+/**
+to rotate Y matrix.
+
+Params:
+    E = element type.
+    m = target matrix.
+    rad = rotation radian.
+Returns:
+    rotate Y matrix.
+*/
+@nogc nothrow pure @safe
+ref auto rotateY(E, R)(auto ref Matrix!(E, 4, 4) m, R rad) if(isNumeric!R)
+{
+    m.identity();
+    immutable sinRad = sin(rad);
+    immutable cosRad = cos(rad);
+    m[0, 0] = cosRad;
+    m[0, 2] = -sinRad;
+    m[2, 0] = sinRad;
+    m[2, 2] = cosRad;
+    return m;
+}
+
+///
+pure @safe unittest
+{
+    import std.math : approxEqual, PI, sqrt;
+
+    immutable m = Matrix!(float, 4, 4)().rotateY(PI / 3.0f);
+    immutable v = Vector!(float, 4)([1.0f, 1.0f, 0.0f, 1.0f]);
+    immutable rotated = m * v;
+    assert(approxEqual(rotated[], [1.0f / 2.0f, 1.0f, sqrt(3.0f) / 2.0f, 1.0f]));
+}
+
+/**
+to rotate Z matrix.
+
+Params:
+    E = element type.
+    m = target matrix.
+    rad = rotation radian.
+Returns:
+    rotate Y matrix.
+*/
+@nogc nothrow pure @safe
+ref auto rotateZ(E, R)(auto ref Matrix!(E, 4, 4) m, R rad) if(isNumeric!R)
+{
+    m.identity();
+    immutable sinRad = sin(rad);
+    immutable cosRad = cos(rad);
+    m[0, 0] = cosRad;
+    m[0, 1] = sinRad;
+    m[1, 0] = -sinRad;
+    m[1, 1] = cosRad;
+    return m;
+}
+
+///
+pure @safe unittest
+{
+    import std.math : approxEqual, PI, sqrt;
+
+    immutable m = Matrix!(float, 4, 4)().rotateZ(PI / 3.0f);
+    immutable v = Vector!(float, 4)([0.0f, 1.0f, 1.0f, 1.0f]);
+    immutable rotated = m * v;
+    assert(approxEqual(rotated[], [sqrt(3.0f) / 2.0f, 1.0f / 2.0f, 1.0f, 1.0f]));
 }
 
