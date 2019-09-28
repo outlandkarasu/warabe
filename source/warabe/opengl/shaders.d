@@ -117,3 +117,30 @@ void getShaderInfoLog(GLShader shader, scope char[] buffer) @nogc nothrow
         (buffer.length > 0) ? &buffer[0] : null);
 }
 
+/**
+OpenGL program type.
+*/
+alias GLProgram = Typedef!(gl.GLuint, gl.GLuint.init, "GLProgram");
+
+/**
+create OpenGL program.
+
+Returns:
+    OpenGL program.
+*/
+GLProgram createProgram() @nogc nothrow
+{
+    return GLProgram(gl.glCreateProgram());
+}
+
+/**
+delete OpenGL program.
+
+Params:
+    program = OpenGL program.
+*/
+void deleteProgram(GLProgram program) @nogc nothrow
+{
+    gl.glDeleteProgram(cast(gl.GLuint) program);
+}
+
