@@ -34,6 +34,11 @@ struct Vector(E, size_t D)
             return elements_[i];
         }
 
+        scope const(E)[] opSlice() const
+        {
+            return elements_[];
+        }
+
         E opIndexAssign(E value, size_t i)
         in
         {
