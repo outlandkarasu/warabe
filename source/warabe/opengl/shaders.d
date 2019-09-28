@@ -167,3 +167,15 @@ void attachShader(GLProgram program, GLShader shader) @nogc nothrow
     gl.glAttachShader(cast(gl.GLuint) program, cast(gl.GLuint) shader);
 }
 
+/**
+Detach shader to program.
+
+Params:
+    program = target program.
+    shader = detach shader.
+*/
+void detachShader(GLProgram program, GLShader shader) @nogc nothrow
+{
+    gl.glDetachShader(cast(gl.GLuint) program, cast(gl.GLuint) shader);
+}
+
