@@ -179,3 +179,49 @@ void detachShader(GLProgram program, GLShader shader) @nogc nothrow
     gl.glDetachShader(cast(gl.GLuint) program, cast(gl.GLuint) shader);
 }
 
+/**
+Link program.
+
+Params:
+    program = target program.
+*/
+void linkProgram(GLProgram program) @nogc nothrow
+{
+    gl.glLinkProgram(cast(gl.GLuint) program);
+}
+
+/**
+Program parameter type.
+*/
+enum GLProgramParameter
+{
+    deleteStatus = gl.GL_DELETE_STATUS,
+    linkStatus = gl.GL_LINK_STATUS,
+    validateStatus = gl.GL_VALIDATE_STATUS,
+    infoLogLength = gl.GL_INFO_LOG_LENGTH,
+    attachedShaders = gl.GL_ATTACHED_SHADERS,
+    activeAttributes = gl.GL_ACTIVE_ATTRIBUTES,
+    activeAttributeMaxLength = gl.GL_ACTIVE_ATTRIBUTE_MAX_LENGTH,
+    activeUniforms = gl.GL_ACTIVE_UNIFORMS,
+    activeUniformMaxLength = gl.GL_ACTIVE_UNIFORM_MAX_LENGTH,
+    transformFeedbackBufferMode = gl.GL_TRANSFORM_FEEDBACK_BUFFER_MODE,
+    transformFeedbackVaryings = gl.GL_TRANSFORM_FEEDBACK_VARYINGS,
+    transformFeedbackVaryingMaxLength = gl.GL_TRANSFORM_FEEDBACK_VARYING_MAX_LENGTH,
+}
+
+/**
+Get a program parameter.
+
+Params:
+    program = target program.
+    parameter = target parameter.
+Returns:
+    program parameter.
+*/
+gl.GLint getProgramParameter(GLProgram program, GLProgramParameter parameter) @nogc nothrow
+{
+    gl.GLint result;
+    gl.glGetProgramiv(cast(gl.GLuint) program, parameter, &result);
+    return result;
+}
+
