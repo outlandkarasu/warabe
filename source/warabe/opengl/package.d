@@ -3,6 +3,7 @@ OpenGL package.
 */
 module warabe.opengl;
 
+public import warabe.opengl.buffers;
 public import warabe.opengl.capabilities;
 public import warabe.opengl.exception;
 public import warabe.opengl.functions;
