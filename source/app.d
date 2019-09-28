@@ -29,6 +29,8 @@ import warabe.sdl.opengl :
     GLSwapInterval,
     GLSwapWindow;
 
+import gl = warabe.opengl;
+
 /**
 Main function.
 */
@@ -53,6 +55,9 @@ void main()
         scope(exit) GLDeleteContext(glContext);
 
         usingOpenGL!({
+            gl.viewport(0, 0, 640, 480);
+            gl.enable(gl.GLCapability.depthTest);
+
             while (processEvent())
             {
                 delay(16);
