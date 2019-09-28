@@ -144,3 +144,26 @@ void deleteProgram(GLProgram program) @nogc nothrow
     gl.glDeleteProgram(cast(gl.GLuint) program);
 }
 
+/**
+use OpenGL program.
+
+Params:
+    program = OpenGL program.
+*/
+void useProgram(GLProgram program) @nogc nothrow
+{
+    gl.glUseProgram(cast(gl.GLuint) program);
+}
+
+/**
+Attach shader to program.
+
+Params:
+    program = target program.
+    shader = attach shader.
+*/
+void attachShader(GLProgram program, GLShader shader) @nogc nothrow
+{
+    gl.glAttachShader(cast(gl.GLuint) program, cast(gl.GLuint) shader);
+}
+
