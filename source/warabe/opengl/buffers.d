@@ -55,3 +55,54 @@ alias GLElementArrayBuffer = GLBuffer!(GLBufferType.elementArrayBuffer);
 alias GLPixelPackBuffer = GLBuffer!(GLBufferType.pixelPackBuffer);
 alias GLPixelUnpackBuffer = GLBuffer!(GLBufferType.pixelUnpackBuffer);
 
+/**
+Generate a buffer.
+
+Params:
+    type = buffer type.
+Returns:
+    buffer name.
+*/
+GLBuffer!type generateBuffer(GLBufferType type)() @nogc nothrow
+{
+    gl.GLuint buffer;
+    gl.glGenBuffers(1, &buffer);
+    return GLBuffer!type(buffer);
+}
+
+/**
+Delete a buffer.
+
+Params:
+    type = buffer type.
+    buffer = target buffer.
+*/
+void deleteBuffer(GLBufferType type)(GLBuffer!type buffer) @nogc nothrow
+{
+    immutable name = cast(gl.GLuint) buffer;
+    gl.glDeleteBuffers(1, &name);
+}
+
+/**
+Bind a buffer.
+
+Params:
+    type = buffer type.
+    buffer = target buffer.
+*/
+void bindBuffer(GLBufferType type)(GLBuffer!type buffer) @nogc nothrow
+{
+    gl.glBindBuffer(type, cast(gl.GLuint) buffer);
+}
+
+/**
+Unbind a buffer.
+
+Params:
+    type = buffer type.
+*/
+void unbindBuffer(GLBufferType type) @nogc nothrow
+{
+    gl.glBindBuffer(type, 0);
+}
+
