@@ -45,3 +45,20 @@ void deleteShader(GLShader shader) @nogc nothrow
     gl.glDeleteShader(cast(gl.GLuint) shader);
 }
 
+/**
+read shader source.
+
+Params:
+    shader = target shader.
+    source = shader source string.
+*/
+void shaderSource(GLShader shader, scope const(char)[] source) @nogc nothrow
+{
+    const(gl.GLchar)*[1] sources = [
+        source.length > 0 ? &source[0] : null
+    ];
+    immutable gl.GLint[1] length = [cast(gl.GLint) source.length];
+    gl.glShaderSource(
+        cast(gl.GLuint) shader, 1, &sources[0], &length[0]);
+}
+
