@@ -106,3 +106,57 @@ void unbindBuffer(GLBufferType type) @nogc nothrow
     gl.glBindBuffer(type, 0);
 }
 
+/**
+OpenGL buffer usage.
+*/
+enum GLBufferUsage
+{
+    streamDraw = gl.GL_STREAM_DRAW,
+    streamRead = gl.GL_STREAM_READ,
+    streamCopy = gl.GL_STREAM_COPY,
+    staticDraw = gl.GL_STATIC_DRAW,
+    staticRead = gl.GL_STATIC_READ,
+    staticCopy = gl.GL_STATIC_COPY,
+    dynamicDraw = gl.GL_DYNAMIC_DRAW,
+    dynamicRead = gl.GL_DYNAMIC_READ,
+    dynamicCopy = gl.GL_DYNAMIC_COPY,
+}
+
+/**
+initialize buffer data.
+
+Params:
+    type = buffer type.
+    buffer = target buffer.
+    data = initialize data.
+    usage = buffer usage.
+*/
+void bufferData(GLBufferType type)(
+        GLBuffer!type buffer,
+        const(void)[] data,
+        GLBufferUsage usage) @nogc nothrow
+{
+    gl.glBufferData(
+        type,
+        cast(gl.GLsizeiptr) data.length,
+        (data.length > 0) ? &data[0] : null,
+        usage);
+}
+
+/**
+allocate buffer data.
+
+Params:
+    type = buffer type.
+    buffer = target buffer.
+    size = buffer size.
+    usage = buffer usage.
+*/
+void allocateBuffer(GLBufferType type)(
+        GLBuffer!type buffer,
+        gl.GLsizeptri size,
+        GLBufferUsage usage) @nogc nothrow
+{
+    gl.glBufferData(type, size, null usage);
+}
+
