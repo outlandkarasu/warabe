@@ -62,3 +62,58 @@ void shaderSource(GLShader shader, scope const(char)[] source) @nogc nothrow
         cast(gl.GLuint) shader, 1, &sources[0], &length[0]);
 }
 
+/**
+compile shader.
+
+Params:
+    shader = target shader.
+*/
+void compileShader(GLShader shader) @nogc nothrow
+{
+    gl.glCompileShader(cast(gl.GLuint) shader);
+}
+
+/**
+Shader parameter type.
+*/
+enum GLShaderParameter
+{
+    shaderType = gl.GL_SHADER_TYPE,
+    deleteStatus = gl.GL_DELETE_STATUS,
+    compileStatus = gl.GL_COMPILE_STATUS,
+    infoLogLength = gl.GL_INFO_LOG_LENGTH,
+    shaderSourceLength = gl.GL_SHADER_SOURCE_LENGTH,
+}
+
+/**
+get shader parameter.
+
+Params:
+    shader = target shader.
+    parameter = parameter type.
+Returns:
+    shader parameter.
+*/
+gl.GLint getShaderParameter(GLShader shader, GLShaderParameter parameter) @nogc nothrow
+{
+    gl.GLint result;
+    gl.glGetShaderiv(cast(gl.GLuint) shader, parameter, &result);
+    return result;
+}
+
+/**
+get shader info log.
+
+Params:
+    shader = target shader.
+    buffer = destination buffer.
+*/
+void getShaderInfoLog(GLShader shader, scope char[] buffer) @nogc nothrow
+{
+    gl.glGetShaderInfoLog(
+        cast(gl.GLuint) shader,
+        cast(gl.GLsizei) buffer.length,
+        null,
+        (buffer.length > 0) ? &buffer[0] : null);
+}
+
