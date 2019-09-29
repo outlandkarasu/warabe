@@ -58,6 +58,9 @@ void main()
             gl.viewport(0, 0, 640, 480);
             gl.enable(gl.GLCapability.depthTest);
 
+            gl.clearColor(0.0f, 0.0f, 0.0f, 0.0f);
+            gl.clear(gl.GLMask.all);
+
             while (processEvent())
             {
                 delay(16);
