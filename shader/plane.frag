@@ -1,9 +1,8 @@
-#version 330 core
+#version 110
 
-in vec4 vertexColor;
-out vec4 color;
+varying lowp vec4 vertexColor;
 
 void main() {
-    color = vertexColor;
+    gl_FragColor = vertexColor;
 }
 

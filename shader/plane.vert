@@ -1,10 +1,10 @@
-#version 330 core
+#version 110
 
-layout(location = 0) in vec3 position;
-layout(location = 1) in vec4 color;
-uniform mat4 viewport;
+attribute mediump vec3 position;
+attribute lowp vec4 color;
+uniform mediump mat4 viewport;
 
-out vec4 vertexColor;
+varying lowp vec4 vertexColor;
 
 void main() {
     gl_Position = viewport * vec4(position, 1.0f);
