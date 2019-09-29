@@ -157,6 +157,6 @@ void allocateBuffer(GLBufferType type)(
         gl.GLsizeptri size,
         GLBufferUsage usage) @nogc nothrow
 {
-    gl.glBufferData(type, size, null usage);
+    gl.glBufferData(type, size, null, usage);
 }
 
