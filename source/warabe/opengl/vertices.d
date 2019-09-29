@@ -46,7 +46,14 @@ Params:
 Returns:
     attribute location.
 */
-GLAttribute getAttributeLocation(GLProgram program, scope const(char)[] name) @nogc nothrow
+GLAttribute getAttributeLocation(
+        GLProgram program,
+        scope const(char)[] name) @nogc nothrow
+in
+{
+    assert(name.length > 0);
+}
+body
 {
     return GLAttribute(gl.glGetAttribLocation(
         cast(gl.GLuint) program, &name[0]));
