@@ -6,6 +6,7 @@
 	"description": "Warabe",
 	"copyright": "Copyright © 2019, outland.karasu@gmail.com",
 	"license": "BSL-1.0",
+        "dflags": ["-preview=dip25", "-preview=dip1000", "-preview=dip1008"],
         "stringImportPaths": ["shader/"],
         "dependencies": {
                 "bindbc-sdl": "0.13.0",
