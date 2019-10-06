@@ -85,7 +85,7 @@ void main()
             scope(exit) gl.deleteBuffer(indicesBuffer);
 
             gl.bindBuffer(indicesBuffer);
-            gl.bufferData(indicesBuffer, vertices[], gl.GLBufferUsage.dynamicDraw);
+            gl.bufferData(indicesBuffer, indices[], gl.GLBufferUsage.dynamicDraw);
             gl.unbindBuffer(indicesBuffer.type);
 
             while (processEvent())

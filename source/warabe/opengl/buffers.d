@@ -5,6 +5,8 @@ module warabe.opengl.buffers;
 
 import gl = bindbc.opengl;
 
+import warabe.opengl.types : GLTypedName;
+
 /**
 Buffer type.
 */
@@ -20,35 +22,16 @@ enum GLBufferType
 /**
 OpenGL buffer type.
 */
-struct GLBuffer(GLBufferType bufferType)
+struct GLBuffer(GLBufferType t)
 {
-    /**
-    Buffer type.
-    */
-    enum TYPE = bufferType;
+    alias name this;
 
-    /**
-    cast value.
-    Returns:
-        buffer value.
-    */
-    gl.GLuint opCast(T)() const @nogc nothrow pure @safe
-    if(is(T == gl.GLuint))
+    this(gl.GLuint n)
     {
-        return buffer_;
+        this.name = typeof(name)(n);
     }
 
-    /**
-    Returns:
-        buffer type.
-    */
-    @property GLBufferType type() const @nogc nothrow pure @safe
-    {
-        return bufferType;
-    }
-
-private:
-    gl.GLuint buffer_;
+    GLTypedName!(GLBufferType, t) name;
 }
 
 ///
@@ -87,7 +70,7 @@ Params:
     type = buffer type.
     buffer = target buffer.
 */
-void deleteBuffer(GLBufferType type)(GLBuffer!type buffer) @nogc nothrow
+void deleteBuffer(GLBufferType type)(GLBuffer!(type) buffer) @nogc nothrow
 {
     immutable name = cast(gl.GLuint) buffer;
     gl.glDeleteBuffers(1, &name);
