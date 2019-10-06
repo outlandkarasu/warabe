@@ -17,30 +17,41 @@ enum GLShaderType
 }
 
 /**
-OpenGL shader ID type.
+OpenGL shader type.
 */
-alias GLShader = Typedef!(gl.GLuint, gl.GLuint.init, "GLShader");
+struct GLShader(GLShaderType t)
+{
+    alias name this;
+
+    this(gl.GLuint n)
+    {
+        this.name = typeof(name)(n);
+    }
+
+    GLTypedName!(GLShaderType, t) name;
+}
 
 /**
 create shader.
 
 Params:
-    shaderType = shader type.
+    type = shader type.
 Returns:
     shader ID.
 */
-GLShader createShader(GLShaderType shaderType) @nogc nothrow
+GLShader!type createShader(GLShaderType type)() @nogc nothrow
 {
-    return GLShader(gl.glCreateShader(shaderType));
+    return GLShader!(type)(gl.glCreateShader(type));
 }
 
 /**
 delete shader.
 
 Params:
+    type = shader type.
     shader = target shader.
 */
-void deleteShader(GLShader shader) @nogc nothrow
+void deleteShader(GLShaderType type)(GLShader!type shader) @nogc nothrow
 {
     gl.glDeleteShader(cast(gl.GLuint) shader);
 }
@@ -49,10 +60,13 @@ void deleteShader(GLShader shader) @nogc nothrow
 read shader source.
 
 Params:
+    type = shader type.
     shader = target shader.
     source = shader source string.
 */
-void shaderSource(GLShader shader, scope const(char)[] source) @nogc nothrow
+void shaderSource(GLShaderType type)(
+        GLShader!type shader,
+        scope const(char)[] source) @nogc nothrow
 {
     const(gl.GLchar)*[1] sources = [
         source.length > 0 ? &source[0] : null
@@ -66,9 +80,10 @@ void shaderSource(GLShader shader, scope const(char)[] source) @nogc nothrow
 compile shader.
 
 Params:
+    type = shader type.
     shader = target shader.
 */
-void compileShader(GLShader shader) @nogc nothrow
+void compileShader(GLShaderType type)(GLShader!type shader) @nogc nothrow
 {
     gl.glCompileShader(cast(gl.GLuint) shader);
 }
@@ -89,12 +104,15 @@ enum GLShaderParameter
 get shader parameter.
 
 Params:
+    type = shader type.
     shader = target shader.
     parameter = parameter type.
 Returns:
     shader parameter.
 */
-gl.GLint getShaderParameter(GLShader shader, GLShaderParameter parameter) @nogc nothrow
+gl.GLint getShaderParameter(GLShaderType type)(
+        GLShader!type shader,
+        GLShaderParameter parameter) @nogc nothrow
 {
     gl.GLint result;
     gl.glGetShaderiv(cast(gl.GLuint) shader, parameter, &result);
@@ -105,10 +123,13 @@ gl.GLint getShaderParameter(GLShader shader, GLShaderParameter parameter) @nogc 
 get shader info log.
 
 Params:
+    type = shader type.
     shader = target shader.
     buffer = destination buffer.
 */
-void getShaderInfoLog(GLShader shader, scope char[] buffer) @nogc nothrow
+void getShaderInfoLog(GLShaderType type)(
+        GLShader!type shader,
+        scope char[] buffer) @nogc nothrow
 {
     gl.glGetShaderInfoLog(
         cast(gl.GLuint) shader,
@@ -159,10 +180,13 @@ void useProgram(GLProgram program) @nogc nothrow
 Attach shader to program.
 
 Params:
+    type = shader type.
     program = target program.
     shader = attach shader.
 */
-void attachShader(GLProgram program, GLShader shader) @nogc nothrow
+void attachShader(GLShaderType type)(
+        GLProgram program,
+        GLShader!type shader) @nogc nothrow
 {
     gl.glAttachShader(cast(gl.GLuint) program, cast(gl.GLuint) shader);
 }
@@ -171,10 +195,13 @@ void attachShader(GLProgram program, GLShader shader) @nogc nothrow
 Detach shader to program.
 
 Params:
+    type = shader type.
     program = target program.
     shader = detach shader.
 */
-void detachShader(GLProgram program, GLShader shader) @nogc nothrow
+void detachShader(GLShaderType type)(
+        GLProgram program,
+        GLShader!type shader) @nogc nothrow
 {
     gl.glDetachShader(cast(gl.GLuint) program, cast(gl.GLuint) shader);
 }
