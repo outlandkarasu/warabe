@@ -4,6 +4,7 @@ Application module.
 module app;
 
 import std.string : toStringz;
+import std.exception : assumeUnique;
 
 import warabe : usingWarabe;
 
@@ -88,6 +89,9 @@ void main()
             gl.bufferData(indicesBuffer, indices[], gl.GLBufferUsage.dynamicDraw);
             gl.unbindBuffer(indicesBuffer.type);
 
+            immutable program = buildProgram(import("plane.vert"), import("plane.frag"));
+            scope(exit) gl.deleteProgram(program);
+
             while (processEvent())
             {
                 delay(16);
@@ -115,5 +119,75 @@ bool processEvent() @nogc nothrow
     }
 
     return true;
+}
+
+/// build program.
+gl.GLProgram buildProgram(
+        scope const(char)[] vertexShaderSource,
+        scope const(char)[] fragmentShaderSource)
+{
+    immutable vertexShader = compileShader!(gl.GLShaderType.vertexShader)(
+            vertexShaderSource);
+    scope(exit) gl.deleteShader(vertexShader);
+
+    immutable fragmentShader = compileShader!(gl.GLShaderType.fragmentShader)(
+            fragmentShaderSource);
+    scope(exit) gl.deleteShader(fragmentShader);
+
+    immutable program = gl.createProgram();
+    scope(failure) gl.deleteProgram(program);
+
+    gl.attachShader(program, vertexShader);
+    gl.attachShader(program, fragmentShader);
+    gl.linkProgram(program);
+    immutable linkStatus = gl.getProgramParameter(
+            program, gl.GLProgramParameter.linkStatus);
+
+    if (!linkStatus)
+    {
+        immutable length = gl.getProgramParameter(
+                program, gl.GLProgramParameter.infoLogLength);
+        if (length > 0)
+        {
+            auto log = new char[length];
+            throw new gl.OpenGLException(assumeUnique(log[]));
+        }
+        else
+        {
+            throw new gl.OpenGLException("link error");
+        }
+    }
+
+    return program;
+}
+
+/// compile shader.
+gl.GLShader!type compileShader(gl.GLShaderType type)(
+        scope const(char)[] source)
+{
+    immutable shader = gl.createShader!type();
+    scope(failure) gl.deleteShader(shader);
+
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+    immutable compileStatus = gl.getShaderParameter(
+            shader, gl.GLShaderParameter.compileStatus);
+    if (!compileStatus)
+    {
+        immutable length = gl.getShaderParameter(
+                shader, gl.GLShaderParameter.infoLogLength);
+        if (length > 0)
+        {
+            auto log = new char[length];
+            gl.getShaderInfoLog(shader, log[]);
+            throw new gl.OpenGLException(assumeUnique(log[]));
+        }
+        else
+        {
+            throw new gl.OpenGLException("compile error");
+        }
+    }
+
+    return shader;
 }
 

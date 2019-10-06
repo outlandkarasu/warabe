@@ -7,6 +7,8 @@ import std.typecons : Typedef;
 
 import gl = bindbc.opengl;
 
+import warabe.opengl.types : GLTypedName;
+
 /**
 Shader type.
 */
@@ -250,5 +252,21 @@ gl.GLint getProgramParameter(GLProgram program, GLProgramParameter parameter) @n
     gl.GLint result;
     gl.glGetProgramiv(cast(gl.GLuint) program, parameter, &result);
     return result;
+}
+
+/**
+Get program information log.
+
+Params:
+    program = target program.
+    buffer = destination buffer.
+*/
+void getProgramInfoLog(GLProgram program, scope char[] buffer) @nogc nothrow
+{
+    gl.glGetProgramInfoLog(
+        cast(gl.GLuint) program,
+        cast(gl.GLsizei) buffer.length,
+        null,
+        (buffer.length > 0) ? &buffer[0] : null);
 }
 
