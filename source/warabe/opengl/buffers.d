@@ -20,12 +20,12 @@ enum GLBufferType
 /**
 OpenGL buffer type.
 */
-struct GLBuffer(GLBufferType type)
+struct GLBuffer(GLBufferType bufferType)
 {
     /**
     Buffer type.
     */
-    enum TYPE = type;
+    enum TYPE = bufferType;
 
     /**
     cast value.
@@ -38,6 +38,15 @@ struct GLBuffer(GLBufferType type)
         return buffer_;
     }
 
+    /**
+    Returns:
+        buffer type.
+    */
+    @property GLBufferType type() const @nogc nothrow pure @safe
+    {
+        return bufferType;
+    }
+
 private:
     gl.GLuint buffer_;
 }
@@ -47,6 +56,7 @@ private:
 {
     immutable buffer = GLBuffer!(GLBufferType.arrayBuffer)(123);
     assert(cast(gl.GLuint) buffer == 123);
+    assert(buffer.type == GLBufferType.arrayBuffer);
 }
 
 alias GLArrayBuffer = GLBuffer!(GLBufferType.arrayBuffer);

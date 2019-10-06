@@ -61,6 +61,33 @@ void main()
             gl.clearColor(0.0f, 0.0f, 0.0f, 0.0f);
             gl.clear(gl.GLMask.all);
 
+            struct Vertex {
+                float[3] position;
+                ubyte[3] color;
+            }
+
+            immutable Vertex[3] vertices = [
+                { [-0.5f, -0.5f,  0.0f], [255,   0,   0] },
+                { [ 0.0f,  0.5f,  0.0f], [  0, 255,   0] },
+                { [ 0.5f, -0.5f,  0.0f], [  0,   0, 255] },
+            ];
+
+            immutable ushort[3] indices = [0, 1, 2];
+
+            immutable verticesBuffer = gl.generateBuffer!(gl.GLBufferType.arrayBuffer);
+            scope(exit) gl.deleteBuffer(verticesBuffer);
+
+            gl.bindBuffer(verticesBuffer);
+            gl.bufferData(verticesBuffer, vertices[], gl.GLBufferUsage.dynamicDraw);
+            gl.unbindBuffer(verticesBuffer.type);
+
+            immutable indicesBuffer = gl.generateBuffer!(gl.GLBufferType.elementArrayBuffer);
+            scope(exit) gl.deleteBuffer(indicesBuffer);
+
+            gl.bindBuffer(indicesBuffer);
+            gl.bufferData(indicesBuffer, vertices[], gl.GLBufferUsage.dynamicDraw);
+            gl.unbindBuffer(indicesBuffer.type);
+
             while (processEvent())
             {
                 delay(16);
